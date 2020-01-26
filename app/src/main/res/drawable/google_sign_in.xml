@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/ic_btn_google_dark_disabled_ios"
+        android:state_focused="false"
+        android:state_pressed="false"
+        android:state_enabled="false" />
+    <item android:drawable="@drawable/ic_btn_google_dark_focus_ios"
+        android:state_focused="true"
+        android:state_pressed="false"
+        android:state_enabled="true" />
+    <item android:drawable="@drawable/ic_btn_google_dark_pressed_ios"
+        android:state_focused="false"
+        android:state_pressed="true"
+        android:state_enabled="true" />
+    <item android:drawable="@drawable/ic_btn_google_dark_normal_ios"
+        android:state_focused="false"
+        android:state_pressed="false"
+        android:state_enabled="true" />
+</selector>

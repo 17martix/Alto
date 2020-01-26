@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "778746110818",
+    "firebase_url": "https://alto-a7134.firebaseio.com",
+    "project_id": "alto-a7134",
+    "storage_bucket": "alto-a7134.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:778746110818:android:c39222ac23d0b794d7823b",
+        "android_client_info": {
+          "package_name": "com.structurecode.alto"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "778746110818-hahtgjpqde2jjqp62hgtivbh4q9gj791.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.structurecode.alto",
+            "certificate_hash": "c888baac2ef82f2d2da6ed407817714a48b1afde"
+          }
+        },
+        {
+          "client_id": "778746110818-7f2gv7erc0n8de1bva56r8q64lt65tls.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdtbqIa6Kl4b4S-1tmLHx9ftYf_L6JYT8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "778746110818-7f2gv7erc0n8de1bva56r8q64lt65tls.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
