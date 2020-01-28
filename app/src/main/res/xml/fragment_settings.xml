@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        app:key="download"
+        app:title="@string/download_settings"
+        >
+        <CheckBoxPreference
+            app:key="is_library_downloaded"
+            app:title="@string/download_library"
+            app:summaryOn="@string/download_library_summary_on"
+            app:summaryOff="@string/download_library_summary_off"
+            />
+
+        <CheckBoxPreference
+            app:key="is_playlist_downloaded"
+            app:title="@string/download_playlist"
+            app:summaryOn="@string/download_playlist_summary_on"
+            app:summaryOff="@string/download_playlist_summary_off"
+            />
+
+        <ListPreference
+            app:key="cache_size"
+            app:dialogTitle="@string/cache_size_dialog"
+            app:entries="@array/cache_size_display"
+            app:entryValues="@array/cache_size"
+            app:useSimpleSummaryProvider="true"
+            app:title="@string/cache_size" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:key="sync"
+        app:title="@string/sync_settings">
+        <ListPreference
+            app:key="refresh_rate"
+            app:dialogTitle="@string/refresh_rate_dialog"
+            app:entries="@array/refresh_rate_display"
+            app:entryValues="@array/refresh_rate"
+            app:useSimpleSummaryProvider="true"
+            app:title="@string/refresh_rate" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:key="account"
+        app:title="@string/account_settings">
+        <Preference
+            app:key="log_out"
+            app:title="@string/sync_log_out" />
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -22,4 +22,8 @@
         <item name="android:textColorPrimary">@color/main_color</item>
         <item name="android:windowBackground">@color/main_color</item>
     </style>
+
+    <style name="TrackSelectionDialogThemeOverlay" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="windowNoTitle">false</item>
+    </style>
 </resources>

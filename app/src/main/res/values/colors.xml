@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="main_color">#00BCD4</color>
-    <color name="main_color_pure">#00B8D4</color>
+    <color name="main_color">#FF5722</color>
+    <color name="main_color_pure">#BF360C</color>
 
-    <color name="main_color_90_transparency">#E600BCD4</color>
-    <color name="main_color_80_transparency">#CC00BCD4</color>
-    <color name="main_color_70_transparency">#B300BCD4</color>
-    <color name="main_color_60_transparency">#9900BCD4</color>
-    <color name="main_color_50_transparency">#8000BCD4</color>
-    <color name="main_color_40_transparency">#6600BCD4</color>
-    <color name="main_color_30_transparency">#4D00BCD4</color>
-    <color name="main_color_20_transparency">#3300BCD4</color>
-    <color name="main_color_10_transparency">#1A00BCD4</color>
+    <color name="main_color_90_transparency">#E6FF5722</color>
+    <color name="main_color_80_transparency">#CCFF5722</color>
+    <color name="main_color_70_transparency">#B3FF5722</color>
+    <color name="main_color_60_transparency">#99FF5722</color>
+    <color name="main_color_50_transparency">#80FF5722</color>
+    <color name="main_color_40_transparency">#66FF5722</color>
+    <color name="main_color_30_transparency">#4DFF5722</color>
+    <color name="main_color_20_transparency">#33FF5722</color>
+    <color name="main_color_10_transparency">#1AFF5722</color>
 
-    <color name="background">#E0F7FA</color>
+    <color name="background">#FBE9E7</color>
     <color name="text">#212121</color>
     <color name="text_disabled">#4D212121</color>
 
-    <color name="second_background">#B2EBF2</color>
+    <color name="second_background">#FFCCBC</color>
 </resources>

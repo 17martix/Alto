@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layoutDirection="ltr"
+    android:orientation="vertical"
+    android:layout_margin="0dp"
+    android:padding="0dp"
+    app:contentPadding="0dp"
+    tools:targetApi="28">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/main_color"
+        android:orientation="vertical"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@drawable/mini_player_border"
+            android:layout_margin="0dp"
+            android:padding="0dp"
+            android:orientation="horizontal">
+
+            <com.google.android.exoplayer2.ui.DefaultTimeBar
+                android:layout_margin="0dp"
+                android:padding="0dp"
+                android:id="@id/exo_progress"
+                app:buffered_color="#FFFFFF"
+                app:played_color="@color/text"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="0dp"
+            android:layout_margin="0dp"
+            android:orientation="horizontal"
+            android:weightSum="5">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="4"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView
+                    android:text="@string/song_info"
+                    android:layout_width="match_parent"
+                    android:textSize="@dimen/normal_sp"
+                    android:gravity="center"
+                    android:layout_height="48dp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:id="@+id/SongInfo" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@id/exo_play"
+                    android:background="@color/main_color"
+                    android:src="@drawable/play"
+                    android:layout_width="45dp"
+                    android:layout_height="48dp"
+                    />
+
+                <ImageButton android:id="@id/exo_pause"
+                    android:background="@color/main_color"
+                    android:src="@drawable/pause"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    />
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+
+
+</androidx.cardview.widget.CardView>

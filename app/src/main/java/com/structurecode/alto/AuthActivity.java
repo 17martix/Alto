@@ -22,12 +22,19 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.structurecode.alto.Helpers.Utils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class AuthActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -43,6 +50,7 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
 
     // [START declare_auth]
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
     // [END declare_auth]
 
     @Override
@@ -76,6 +84,7 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
         // [START initialize_auth]
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
+        db= FirebaseFirestore.getInstance();
         // [END initialize_auth]
     }
 
@@ -253,7 +262,7 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
 
         String email = mEmailField.getText().toString();
         if (TextUtils.isEmpty(email)) {
-            mEmailField.setError("Required.");
+            mEmailField.setError(getString(R.string.required));
             valid = false;
         } else {
             mEmailField.setError(null);
@@ -261,7 +270,7 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
 
         String password = mPasswordField.getText().toString();
         if (TextUtils.isEmpty(password)) {
-            mPasswordField.setError("Required.");
+            mPasswordField.setError(getString(R.string.required));
             valid = false;
         } else {
             mPasswordField.setError(null);
@@ -274,9 +283,22 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
         hideProgressBar();
         if (user != null) {
             if (user.isEmailVerified()){
-                Intent intent = new Intent(AuthActivity.this,LibraryActivity.class);
-                startActivity(intent);
-                finish();
+                String uid = user.getUid();
+                Map<String, Object> device_id = new HashMap<>();
+                device_id.put("device_id", Utils.get_device_id(this));
+                db.collection("users").document(uid).set(device_id).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Intent intent = new Intent(AuthActivity.this,LibraryActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        signOut();
+                    }
+                });
             }else {
                 mStatusTextView.setText(getString(R.string.emailpassword_status_fmt,
                         user.getEmail(), user.isEmailVerified()));

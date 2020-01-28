@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_add_playlist"
+        android:title="@string/action_add_playlist"
+        android:orderInCategory="100"
+        android:icon="@drawable/plus"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_shuffle"
+        android:title="@string/action_shuffle"
+        android:orderInCategory="100"
+        android:icon="@drawable/shuffle"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_settings"
+        android:title="@string/action_settings"
+        android:orderInCategory="100"
+        android:icon="@drawable/settings"
+        app:showAsAction="always" />
+</menu>
