@@ -2,6 +2,7 @@
 <resources>
     <color name="main_color">#FF5722</color>
     <color name="main_color_pure">#BF360C</color>
+    <color name="accent_color">#52FF22</color>
 
     <color name="main_color_90_transparency">#E6FF5722</color>
     <color name="main_color_80_transparency">#CCFF5722</color>

@@ -60,7 +60,7 @@ public class SongDownloadManager {
         return new DefaultHttpDataSourceFactory(userAgent);
     }
 
-    public boolean useExtensionRenderers() {
+    /*public boolean useExtensionRenderers() {
         return "withExtensions".equals(BuildConfig.FLAVOR);
     }
 
@@ -71,9 +71,9 @@ public class SongDownloadManager {
                         ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
                         : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
                         : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF;
-        return new DefaultRenderersFactory(/* context= */ context)
+        return new DefaultRenderersFactory(*//* context= *//* context)
                 .setExtensionRendererMode(extensionRendererMode);
-    }
+    }*/
 
     public DownloadManager getDownloadManager() {
         initDownloadManager();

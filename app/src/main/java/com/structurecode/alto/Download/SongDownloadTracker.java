@@ -80,23 +80,16 @@ public class SongDownloadTracker {
         return download != null && download.state != Download.STATE_FAILED ? download.request : null;
     }
 
-    public void toggleDownload(
-            FragmentManager fragmentManager,
-            String name,
-            Uri uri,
-            String extension,
-            RenderersFactory renderersFactory) {
+    public void toggleDownload(String name, Uri uri) {
         Download download = downloads.get(uri);
         if (download != null) {
-            DownloadService.sendRemoveDownload(
-                    context, SongDownloadService.class, download.request.id, /* foreground= */ false);
+            DownloadService.sendRemoveDownload(context, SongDownloadService.class, download.request.id, false);
         } else {
             if (startDownloadDialogHelper != null) {
                 startDownloadDialogHelper.release();
             }
             startDownloadDialogHelper =
-                    new StartDownloadDialogHelper(
-                            fragmentManager, getDownloadHelper(uri, extension, renderersFactory), name);
+                    new StartDownloadDialogHelper(getDownloadHelper(uri), name);
         }
     }
 
@@ -111,21 +104,8 @@ public class SongDownloadTracker {
         }
     }
 
-    private DownloadHelper getDownloadHelper(
-            Uri uri, String extension, RenderersFactory renderersFactory) {
-        int type = Util.inferContentType(uri, extension);
-        switch (type) {
-            case C.TYPE_DASH:
-                return DownloadHelper.forDash(context, uri, dataSourceFactory, renderersFactory);
-            case C.TYPE_SS:
-                return DownloadHelper.forSmoothStreaming(context, uri, dataSourceFactory, renderersFactory);
-            case C.TYPE_HLS:
-                return DownloadHelper.forHls(context, uri, dataSourceFactory, renderersFactory);
-            case C.TYPE_OTHER:
-                return DownloadHelper.forProgressive(context, uri);
-            default:
-                throw new IllegalStateException("Unsupported type: " + type);
-        }
+    private DownloadHelper getDownloadHelper(Uri uri) {
+        return DownloadHelper.forProgressive(context, uri);
     }
 
     private class DownloadManagerListener implements DownloadManager.Listener {
@@ -147,29 +127,22 @@ public class SongDownloadTracker {
         }
     }
 
-    private final class StartDownloadDialogHelper implements DownloadHelper.Callback,
-            DialogInterface.OnClickListener, DialogInterface.OnDismissListener {
+    private final class StartDownloadDialogHelper implements DownloadHelper.Callback {
 
-        private final FragmentManager fragmentManager;
         private final DownloadHelper downloadHelper;
         private final String name;
 
-        private TrackSelectionDialog trackSelectionDialog;
-        private MappingTrackSelector.MappedTrackInfo mappedTrackInfo;
-
-        public StartDownloadDialogHelper(
-                FragmentManager fragmentManager, DownloadHelper downloadHelper, String name) {
-            this.fragmentManager = fragmentManager;
+        public StartDownloadDialogHelper(DownloadHelper downloadHelper, String name) {
             this.downloadHelper = downloadHelper;
             this.name = name;
             downloadHelper.prepare(this);
+
+            DownloadRequest downloadRequest = buildDownloadRequest();
+            startDownload(downloadRequest);
         }
 
         public void release() {
             downloadHelper.release();
-            if (trackSelectionDialog != null) {
-                trackSelectionDialog.dismiss();
-            }
         }
 
         // DownloadHelper.Callback implementation.
@@ -182,77 +155,21 @@ public class SongDownloadTracker {
                 downloadHelper.release();
                 return;
             }
-            mappedTrackInfo = downloadHelper.getMappedTrackInfo(/* periodIndex= */ 0);
-            if (!TrackSelectionDialog.willHaveContent(mappedTrackInfo)) {
-                Log.d(TAG, "No dialog content. Downloading entire stream.");
-                startDownload();
-                downloadHelper.release();
-                return;
-            }
-            trackSelectionDialog =
-                    TrackSelectionDialog.createForMappedTrackInfoAndParameters(
-                            /* titleId= */ R.string.exo_download_description,
-                            mappedTrackInfo,
-                            trackSelectorParameters,
-                            /* allowAdaptiveSelections =*/ false,
-                            /* allowMultipleOverrides= */ true,
-                            /* onClickListener= */ this,
-                            /* onDismissListener= */ this);
-            trackSelectionDialog.show(fragmentManager, /* tag= */ null);
         }
 
         @Override
         public void onPrepareError(DownloadHelper helper, IOException e) {
             Toast.makeText(context, R.string.download_start_error, Toast.LENGTH_LONG).show();
-            Log.e(
-                    TAG,
-                    e instanceof DownloadHelper.LiveContentUnsupportedException
-                            ? "Downloading live content unsupported"
-                            : "Failed to start download",
-                    e);
-        }
-
-        // DialogInterface.OnClickListener implementation.
-
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-            for (int periodIndex = 0; periodIndex < downloadHelper.getPeriodCount(); periodIndex++) {
-                downloadHelper.clearTrackSelections(periodIndex);
-                for (int i = 0; i < mappedTrackInfo.getRendererCount(); i++) {
-                    if (!trackSelectionDialog.getIsDisabled(/* rendererIndex= */ i)) {
-                        downloadHelper.addTrackSelectionForSingleRenderer(
-                                periodIndex,
-                                /* rendererIndex= */ i,
-                                trackSelectorParameters,
-                                trackSelectionDialog.getOverrides(/* rendererIndex= */ i));
-                    }
-                }
-            }
-            DownloadRequest downloadRequest = buildDownloadRequest();
-            if (downloadRequest.streamKeys.isEmpty()) {
-                // All tracks were deselected in the dialog. Don't start the download.
-                return;
-            }
-            startDownload(downloadRequest);
-        }
-
-        // DialogInterface.OnDismissListener implementation.
-
-        @Override
-        public void onDismiss(DialogInterface dialogInterface) {
-            trackSelectionDialog = null;
-            downloadHelper.release();
+            Log.e(TAG, e instanceof DownloadHelper.LiveContentUnsupportedException ? "Downloading live content unsupported"
+                    : "Failed to start download", e);
         }
 
         // Internal methods.
-
         private void startDownload() {
             startDownload(buildDownloadRequest());
         }
-
         private void startDownload(DownloadRequest downloadRequest) {
-            DownloadService.sendAddDownload(
-                    context, SongDownloadService.class, downloadRequest, /* foreground= */ false);
+            DownloadService.sendAddDownload(context, SongDownloadService.class, downloadRequest, false);
         }
 
         private DownloadRequest buildDownloadRequest() {
