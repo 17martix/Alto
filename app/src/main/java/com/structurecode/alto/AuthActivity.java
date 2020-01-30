@@ -286,7 +286,7 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
                 String uid = user.getUid();
                 Map<String, Object> device_id = new HashMap<>();
                 device_id.put("device_id", Utils.get_device_id(this));
-                db.collection("users").document(uid).set(device_id).addOnSuccessListener(new OnSuccessListener<Void>() {
+                db.collection(Utils.COLLECTION_USERS).document(uid).set(device_id).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Intent intent = new Intent(AuthActivity.this,LibraryActivity.class);

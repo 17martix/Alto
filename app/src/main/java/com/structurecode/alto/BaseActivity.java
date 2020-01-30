@@ -1,5 +1,6 @@
 package com.structurecode.alto;
 
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -8,10 +9,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.structurecode.alto.Helpers.Utils;
 
 public abstract class BaseActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
 
     protected BottomNavigationView navigationView;
+    private BroadcastReceiver checkBroadcast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +23,8 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
 
         navigationView = (BottomNavigationView) findViewById(R.id.navigation);
         navigationView.setOnNavigationItemSelectedListener(this);
+
+        Utils.device_check_broadcast(BaseActivity.this,checkBroadcast);
     }
 
     @Override

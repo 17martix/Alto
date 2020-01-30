@@ -15,6 +15,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -42,8 +43,16 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.PlayerNotificationManager;
 import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.structurecode.alto.Download.SongDownloadManager;
 import com.structurecode.alto.Download.SongDownloadTracker;
+import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 
@@ -53,7 +62,9 @@ import java.util.List;
 public class PlayerService extends Service implements SongDownloadTracker.Listener {
     public static final String ADD_TO_QUEUE="com.structurecode.alto.services.player.add.queue";
     public static final String DOWNLOAD_SONG="com.structurecode.alto.services.player.download.song";
+    public static final String PLAY_SONG="com.structurecode.alto.services.player.play.song";
     public static final String AUDIO_EXTRA="song_extra";
+    public static final String AUDIO_LIST_EXTRA="song_list_extra";
 
     private static final String PLAYBACK_CHANNEL_ID="com.structurecode.alto.services.player.chanel.id.alto";
     private static final int PLAYBACK_CHANNEL_NAME=4;
@@ -74,6 +85,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
     private BroadcastReceiver add_queue_receiver;
     private BroadcastReceiver download_song_receiver;
+    private BroadcastReceiver play_song_receiver;
 
     private SongDownloadManager songDownloadManager;
 
@@ -84,6 +96,9 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
     private MediaMetadataRetriever mediaMetadataRetriever;
     private Bitmap albumImage=null;
+
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
     @Override
     public void onCreate() {
@@ -114,6 +129,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         initialize_broadcasts();
         notification_manager();
         addPlayerListener();
+        deviceCheck();
 
         // Start the download service if it should be running but it's not currently.
         // Starting the service in the foreground causes notification flicker if there is no scheduled
@@ -142,6 +158,37 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         Intent intent=new Intent();
         intent.setAction(DOWNLOAD_CHANGED);
         sendBroadcast(intent);
+    }
+
+    public void deviceCheck(){
+        mAuth = FirebaseAuth.getInstance();
+        db= FirebaseFirestore.getInstance();
+        FirebaseUser user = mAuth.getCurrentUser();
+
+        final DocumentReference docRef = db.collection(Utils.COLLECTION_USERS).document(user.getUid());
+        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w("ABC", "Listen failed.", e);
+                    return;
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+
+                    String device_id = snapshot.getString("device_id");
+
+                    if (!device_id.equals(Utils.get_device_id(context))){
+                        Intent intent=new Intent();
+                        intent.setAction(Utils.DEVICE_CHECK);
+                        sendBroadcast(intent);
+                    }
+
+                } else {
+                    Log.d("ABC", "Current data: null");
+                }
+            }
+        });
     }
 
     public class LocalBinder extends Binder {
@@ -273,7 +320,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         };
 
         IntentFilter download_song_filter = new IntentFilter();
-        add_queue_filter.addAction(DOWNLOAD_SONG);
+        download_song_filter.addAction(DOWNLOAD_SONG);
         download_song_receiver =new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -283,6 +330,19 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
             }
         };
 
+        IntentFilter play_song_filter = new IntentFilter();
+        play_song_filter.addAction(PLAY_SONG);
+        play_song_receiver =new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Song song=(Song)intent.getParcelableExtra(AUDIO_EXTRA);
+                ArrayList<Song> list = intent.getParcelableArrayListExtra(AUDIO_LIST_EXTRA);
+                play_song(song,list);
+
+            }
+        };
+
+        registerReceiver(play_song_receiver,play_song_filter);
         registerReceiver(download_song_receiver,download_song_filter);
         registerReceiver(add_queue_receiver,add_queue_filter);
     }

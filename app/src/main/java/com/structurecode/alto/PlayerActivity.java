@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.view.MenuItem;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -42,6 +43,19 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        switch (id){
+            case android.R.id.home:
+                onBackPressed();
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     //Binding this Client to the AudioPlayer Service

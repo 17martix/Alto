@@ -1,7 +1,11 @@
 package com.structurecode.alto.Helpers;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -11,6 +15,10 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.structurecode.alto.AuthActivity;
 import com.structurecode.alto.Models.Song;
 
 import java.io.BufferedReader;
@@ -37,15 +45,17 @@ public class Utils {
     public static final String GET_REQUEST="GET";
     public static final String DELETE_REQUEST="DELETE";
 
-    public static final String loginBroadcast="com.skilledhacker.developer.musiqx.login";
-    public static final String urlBroadcast="com.skilledhacker.developer.musiqx.url";
-    public static final String registration_success_broadcast="com.skilledhacker.developer.musiqx.registration.success";
+    public static final String COLLECTION_USERS="users";
+    public static final String COLLECTION_SETTINGS="settings";
+    public static final String COLLECTION_LIBRARY="library";
 
-    public static int RandomSong(ArrayList<Song> songList) {
+    public static final String DEVICE_CHECK="com.structurecode.alto.device.check";
+
+    /*public static int RandomSong(ArrayList<Song> songList) {
         Random rand = new Random();
         int randomInt = songList.get(rand.nextInt(songList.size())).getId();
         return randomInt;
-    }
+    }*/
 
     public static void show_mini_player(boolean show, Context context, CoordinatorLayout coordinatorLayout, LinearLayout mini_player){
         final float scale = context.getResources().getDisplayMetrics().density;
@@ -61,6 +71,23 @@ public class Utils {
             params.setMargins(0,0,0,0);
             coordinatorLayout.setLayoutParams(params);
         }
+    }
+
+    public static void device_check_broadcast(Context context, BroadcastReceiver broadcastReceiver){
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(DEVICE_CHECK);
+        broadcastReceiver =new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                FirebaseAuth mAuth = FirebaseAuth.getInstance();
+                mAuth.signOut();
+                Intent i=new Intent(context, AuthActivity.class);
+                context.startActivity(i);
+                ((Activity)context).finish();
+            }
+        };
+
+        context.registerReceiver(broadcastReceiver,intentFilter);
     }
 
     public static void setMargins (View v, int l, int t, int r, int b) {
