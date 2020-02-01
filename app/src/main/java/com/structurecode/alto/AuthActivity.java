@@ -36,6 +36,10 @@ import com.structurecode.alto.Helpers.Utils;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.structurecode.alto.Helpers.Utils.db;
+import static com.structurecode.alto.Helpers.Utils.mAuth;
+import static com.structurecode.alto.Helpers.Utils.user;
+
 public class AuthActivity extends AppCompatActivity implements View.OnClickListener{
 
     @VisibleForTesting
@@ -47,11 +51,6 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
     private static final int RC_SIGN_IN = 9001;
 
     private GoogleSignInClient mGoogleSignInClient;
-
-    // [START declare_auth]
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
-    // [END declare_auth]
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -80,12 +79,6 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
         // [END config_signin]
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-
-        // [START initialize_auth]
-        // Initialize Firebase Auth
-        mAuth = FirebaseAuth.getInstance();
-        db= FirebaseFirestore.getInstance();
-        // [END initialize_auth]
     }
 
     // [START on_start_check_user]
@@ -161,8 +154,28 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
+
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("is_library_downloaded", 1);
+                            map.put("is_playlist_downloaded", 1);
+                            db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                                    .collection(Utils.COLLECTION_SETTINGS).document(user.getUid())
+                                    .update(map)
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            Log.d("ABC", "DocumentSnapshot successfully written!");
+                                            FirebaseUser user = mAuth.getCurrentUser();
+                                            updateUI(user);
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            hideProgressBar();
+                                            Log.w("ABC", "Error writing document", e);
+                                        }
+                                    });
                         } else {
                             Toast.makeText(AuthActivity.this, R.string.login_failed,
                                     Toast.LENGTH_SHORT).show();
@@ -280,7 +293,6 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void updateUI(FirebaseUser user) {
-        hideProgressBar();
         if (user != null) {
             if (user.isEmailVerified()){
                 String uid = user.getUid();
@@ -300,6 +312,7 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 });
             }else {
+                hideProgressBar();
                 mStatusTextView.setText(getString(R.string.emailpassword_status_fmt,
                         user.getEmail(), user.isEmailVerified()));
 
@@ -310,6 +323,7 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
                 findViewById(R.id.verifyEmailButton).setEnabled(true);
             }
         } else {
+            hideProgressBar();
             mStatusTextView.setText(R.string.signed_out);
 
             findViewById(R.id.emailPasswordButtons).setVisibility(View.VISIBLE);

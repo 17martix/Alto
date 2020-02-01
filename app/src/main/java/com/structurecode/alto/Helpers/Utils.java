@@ -14,10 +14,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.structurecode.alto.AuthActivity;
 import com.structurecode.alto.Models.Song;
 
@@ -48,14 +54,15 @@ public class Utils {
     public static final String COLLECTION_USERS="users";
     public static final String COLLECTION_SETTINGS="settings";
     public static final String COLLECTION_LIBRARY="library";
+    public static final String COLLECTION_RECORD="record";
 
     public static final String DEVICE_CHECK="com.structurecode.alto.device.check";
 
-    /*public static int RandomSong(ArrayList<Song> songList) {
-        Random rand = new Random();
-        int randomInt = songList.get(rand.nextInt(songList.size())).getId();
-        return randomInt;
-    }*/
+    public static FirebaseAuth mAuth=FirebaseAuth.getInstance();
+    public static FirebaseFirestore db= FirebaseFirestore.getInstance();
+    public static FirebaseUser user = mAuth.getCurrentUser();
+
+    public static String music_url = "https://storage.googleapis.com/alto-a7134.appspot.com/";
 
     public static void show_mini_player(boolean show, Context context, CoordinatorLayout coordinatorLayout, LinearLayout mini_player){
         final float scale = context.getResources().getDisplayMetrics().density;

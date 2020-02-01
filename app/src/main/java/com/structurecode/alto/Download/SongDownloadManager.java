@@ -3,6 +3,8 @@ package com.structurecode.alto.Download;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.exoplayer2.database.DatabaseProvider;
 import com.google.android.exoplayer2.database.ExoDatabaseProvider;
 import com.google.android.exoplayer2.offline.ActionFileUpgradeUtil;
@@ -19,8 +21,18 @@ import com.google.android.exoplayer2.upstream.cache.Cache;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSourceFactory;
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor;
+import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor;
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.structurecode.alto.Helpers.Utils;
+import com.structurecode.alto.Models.Setting;
 import com.structurecode.alto.R;
 
 import java.io.File;
@@ -32,27 +44,22 @@ public class SongDownloadManager {
     private static final String DOWNLOAD_TRACKER_ACTION_FILE = "tracked_actions";
     private static final String DOWNLOAD_CONTENT_DIRECTORY = "downloads";
 
-    protected String userAgent;
+    protected static String userAgent;
 
-    private DatabaseProvider databaseProvider;
-    private File downloadDirectory;
-    private Cache downloadCache;
-    private DownloadManager downloadManager;
-    private SongDownloadTracker downloadTracker;
-    private Context context;
+    private static DatabaseProvider databaseProvider;
+    private static File downloadDirectory;
+    private static Cache downloadCache;
+    private static DownloadManager downloadManager;
+    private static SongDownloadTracker downloadTracker;
 
-    public SongDownloadManager(Context context) {
-        this.context=context;
-        userAgent = Util.getUserAgent(context, context.getString(R.string.app_name));
-    }
-
-    public DataSource.Factory buildDataSourceFactory() {
+    public static DataSource.Factory buildDataSourceFactory(Context context) {
         DefaultDataSourceFactory upstreamFactory =
-                new DefaultDataSourceFactory(context, buildHttpDataSourceFactory());
-        return buildReadOnlyCacheDataSource(upstreamFactory, getDownloadCache());
+                new DefaultDataSourceFactory(context, buildHttpDataSourceFactory(context));
+        return buildReadOnlyCacheDataSource(upstreamFactory, getDownloadCache(context));
     }
 
-    public HttpDataSource.Factory buildHttpDataSourceFactory() {
+    public static HttpDataSource.Factory buildHttpDataSourceFactory(Context context) {
+        userAgent = Util.getUserAgent(context, context.getString(R.string.app_name));
         return new DefaultHttpDataSourceFactory(userAgent);
     }
 
@@ -71,47 +78,48 @@ public class SongDownloadManager {
                 .setExtensionRendererMode(extensionRendererMode);
     }*/
 
-    public DownloadManager getDownloadManager() {
-        initDownloadManager();
+    public static DownloadManager getDownloadManager(Context context) {
+        initDownloadManager(context);
         return downloadManager;
     }
 
-    public SongDownloadTracker getDownloadTracker() {
-        initDownloadManager();
+    public static SongDownloadTracker getDownloadTracker(Context context) {
+        initDownloadManager(context);
         return downloadTracker;
     }
 
-    protected synchronized Cache getDownloadCache() {
+    protected static synchronized Cache getDownloadCache(Context context) {
         if (downloadCache == null) {
-            File downloadContentDirectory = new File(getDownloadDirectory(), DOWNLOAD_CONTENT_DIRECTORY);
+            File downloadContentDirectory = new File(getDownloadDirectory(context), DOWNLOAD_CONTENT_DIRECTORY);
             downloadCache =
-                    new SimpleCache(downloadContentDirectory, new LeastRecentlyUsedCacheEvictor(5000 * 1024 * 1024), getDatabaseProvider());
+                    new SimpleCache(downloadContentDirectory,
+                            new NoOpCacheEvictor(), getDatabaseProvider(context));
         }
         return downloadCache;
     }
 
-    private synchronized void initDownloadManager() {
+    private static synchronized void initDownloadManager(Context context) {
         if (downloadManager == null) {
-            DefaultDownloadIndex downloadIndex = new DefaultDownloadIndex(getDatabaseProvider());
+            DefaultDownloadIndex downloadIndex = new DefaultDownloadIndex(getDatabaseProvider(context));
             upgradeActionFile(
-                    DOWNLOAD_ACTION_FILE, downloadIndex, /* addNewDownloadsAsCompleted= */ false);
+                    DOWNLOAD_ACTION_FILE, downloadIndex, /* addNewDownloadsAsCompleted= */ false,context);
             upgradeActionFile(
-                    DOWNLOAD_TRACKER_ACTION_FILE, downloadIndex, /* addNewDownloadsAsCompleted= */ true);
+                    DOWNLOAD_TRACKER_ACTION_FILE, downloadIndex, /* addNewDownloadsAsCompleted= */ true, context);
             DownloaderConstructorHelper downloaderConstructorHelper =
-                    new DownloaderConstructorHelper(getDownloadCache(), buildHttpDataSourceFactory());
+                    new DownloaderConstructorHelper(getDownloadCache(context), buildHttpDataSourceFactory(context));
             downloadManager =
                     new DownloadManager(
                             context, downloadIndex, new DefaultDownloaderFactory(downloaderConstructorHelper));
             downloadTracker =
-                    new SongDownloadTracker(/* context= */ context, buildDataSourceFactory(), downloadManager);
+                    new SongDownloadTracker(/* context= */ context, buildDataSourceFactory(context), downloadManager);
         }
     }
 
-    private void upgradeActionFile(
-            String fileName, DefaultDownloadIndex downloadIndex, boolean addNewDownloadsAsCompleted) {
+    private static void upgradeActionFile(
+            String fileName, DefaultDownloadIndex downloadIndex, boolean addNewDownloadsAsCompleted, Context context) {
         try {
             ActionFileUpgradeUtil.upgradeAndDelete(
-                    new File(getDownloadDirectory(), fileName),
+                    new File(getDownloadDirectory(context), fileName),
                     /* downloadIdProvider= */ null,
                     downloadIndex,
                     /* deleteOnFailure= */ true,
@@ -121,14 +129,14 @@ public class SongDownloadManager {
         }
     }
 
-    private DatabaseProvider getDatabaseProvider() {
+    private static DatabaseProvider getDatabaseProvider(Context context) {
         if (databaseProvider == null) {
             databaseProvider = new ExoDatabaseProvider(context);
         }
         return databaseProvider;
     }
 
-    private File getDownloadDirectory() {
+    private static File getDownloadDirectory(Context context) {
         if (downloadDirectory == null) {
             downloadDirectory = context.getExternalFilesDir(null);
             if (downloadDirectory == null) {

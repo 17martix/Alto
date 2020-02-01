@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -15,10 +16,11 @@ import com.structurecode.alto.Helpers.StorageHandler;
 
 import java.util.ArrayList;
 
+import static com.structurecode.alto.Helpers.Utils.mAuth;
+
 public class SplashScreenActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST = 1;
     private static int SPLASH_TIME_OUT = 3000;
-    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,8 +28,8 @@ public class SplashScreenActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splashscreen);
 
         ArrayList<String> arrPerm = new ArrayList<>();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            arrPerm.add(Manifest.permission.READ_PHONE_STATE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            arrPerm.add(Manifest.permission.READ_EXTERNAL_STORAGE);
         }
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             arrPerm.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -61,7 +63,7 @@ public class SplashScreenActivity extends AppCompatActivity {
                 if (grantResults.length > 0) {
                     for(int i = 0; i < grantResults.length; i++) {
                         String permission = permissions[i];
-                        if(Manifest.permission.READ_PHONE_STATE.equals(permission)) {
+                        if(Manifest.permission.READ_EXTERNAL_STORAGE.equals(permission)) {
                             if(grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                                 close_app();
                             }

@@ -20,27 +20,6 @@
             app:summaryOff="@string/download_playlist_summary_off"
             />
 
-        <ListPreference
-            app:key="cache_size"
-            app:dialogTitle="@string/cache_size_dialog"
-            app:entries="@array/cache_size_display"
-            app:entryValues="@array/cache_size"
-            app:useSimpleSummaryProvider="true"
-            app:title="@string/cache_size" />
-
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        app:key="sync"
-        app:title="@string/sync_settings">
-        <ListPreference
-            app:key="refresh_rate"
-            app:dialogTitle="@string/refresh_rate_dialog"
-            app:entries="@array/refresh_rate_display"
-            app:entryValues="@array/refresh_rate"
-            app:useSimpleSummaryProvider="true"
-            app:title="@string/refresh_rate" />
-
     </PreferenceCategory>
 
     <PreferenceCategory

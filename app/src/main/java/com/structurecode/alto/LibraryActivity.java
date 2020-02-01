@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
@@ -32,6 +33,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.ui.PlayerControlView;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -50,6 +52,11 @@ import com.structurecode.alto.Services.PlayerService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+
+import static com.structurecode.alto.Helpers.Utils.user;
+import static com.structurecode.alto.Helpers.Utils.db;
+import static com.structurecode.alto.Helpers.Utils.mAuth;
 
 public class LibraryActivity extends BaseActivity {
 
@@ -64,9 +71,6 @@ public class LibraryActivity extends BaseActivity {
     private LinearLayout mini_player_music;
     private CoordinatorLayout coordinatorLayout;
     private TextView song_info;
-
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,11 +87,12 @@ public class LibraryActivity extends BaseActivity {
         tabLayout.setupWithViewPager(viewPager);
         song_info= findViewById(R.id.SongInfo);
 
+        mAuth=FirebaseAuth.getInstance();
+        db= FirebaseFirestore.getInstance();
+        user = mAuth.getCurrentUser();
+
         playerControlView=findViewById(R.id.audio_view);
 
-        mAuth = FirebaseAuth.getInstance();
-        db= FirebaseFirestore.getInstance();
-        FirebaseUser user = mAuth.getCurrentUser();
         startService();
 
         mini_player_music.setOnClickListener(new View.OnClickListener() {
@@ -173,6 +178,23 @@ public class LibraryActivity extends BaseActivity {
                 display_new_playlist_dialog(R.string.new_playlist,R.string.create,"",false,0);
                 break;
             case R.id.action_shuffle:
+                CollectionReference col = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                        .collection(Utils.COLLECTION_LIBRARY);
+                col.get().addOnSuccessListener(queryDocumentSnapshots -> {
+                    /*List<Song> list = queryDocumentSnapshots.toObjects(Song.class);
+                    int random = new Random().nextInt(list.size());
+                    Song song = list.get(random);
+                    player.play_song(song,list);*/
+                    SongFragment fragment = ((SongFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_library_songs));
+                    int total_Count = fragment.getRecyclerView().getAdapter().getItemCount()-1;
+                    int random = new Random().nextInt(total_Count);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            fragment.getRecyclerView().findViewHolderForAdapterPosition(random).itemView.performClick();
+                        }
+                    },1);
+                });
                 break;
         }
 
@@ -273,13 +295,5 @@ public class LibraryActivity extends BaseActivity {
             song_info.setText(player.GetPlayingInfo());
             Utils.show_mini_player(true,LibraryActivity.this,coordinatorLayout,mini_player_music);
         }
-    }
-
-    public FirebaseAuth getmAuth() {
-        return mAuth;
-    }
-
-    public FirebaseFirestore getDb() {
-        return db;
     }
 }

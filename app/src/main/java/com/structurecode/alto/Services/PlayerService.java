@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
@@ -17,6 +16,7 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
@@ -50,6 +50,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Transaction;
 import com.structurecode.alto.Download.SongDownloadManager;
 import com.structurecode.alto.Download.SongDownloadTracker;
 import com.structurecode.alto.Helpers.Utils;
@@ -57,12 +58,21 @@ import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import wseemann.media.FFmpegMediaMetadataRetriever;
+
+import static com.structurecode.alto.Helpers.Utils.db;
+import static com.structurecode.alto.Helpers.Utils.mAuth;
+import static com.structurecode.alto.Helpers.Utils.user;
 
 public class PlayerService extends Service implements SongDownloadTracker.Listener {
     public static final String ADD_TO_QUEUE="com.structurecode.alto.services.player.add.queue";
     public static final String DOWNLOAD_SONG="com.structurecode.alto.services.player.download.song";
     public static final String PLAY_SONG="com.structurecode.alto.services.player.play.song";
+    public static final String DOWNLOAD_COMPLETED="com.structurecode.alto.services.download.completed";
     public static final String AUDIO_EXTRA="song_extra";
     public static final String AUDIO_LIST_EXTRA="song_list_extra";
 
@@ -87,18 +97,13 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
     private BroadcastReceiver download_song_receiver;
     private BroadcastReceiver play_song_receiver;
 
-    private SongDownloadManager songDownloadManager;
-
     public SimpleExoPlayer player;
     private ConcatenatingMediaSource concatenatingMediaSource;
     private DataSource.Factory dataSourceFactory;
     private SongDownloadTracker downloadTracker;
 
-    private MediaMetadataRetriever mediaMetadataRetriever;
+    private FFmpegMediaMetadataRetriever mediaMetadataRetriever;
     private Bitmap albumImage=null;
-
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
 
     @Override
     public void onCreate() {
@@ -106,11 +111,14 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
         context=this;
         playlist=new ArrayList<>();
-        songDownloadManager = new SongDownloadManager(this);
-        mediaMetadataRetriever = new MediaMetadataRetriever();
+        mediaMetadataRetriever = new FFmpegMediaMetadataRetriever();
 
-        dataSourceFactory = songDownloadManager.buildDataSourceFactory();
-        downloadTracker = songDownloadManager.getDownloadTracker();
+        mAuth=FirebaseAuth.getInstance();
+        db= FirebaseFirestore.getInstance();
+        user = mAuth.getCurrentUser();
+
+        dataSourceFactory = SongDownloadManager.buildDataSourceFactory(context);
+        downloadTracker = SongDownloadManager.getDownloadTracker(context);
         downloadTracker.addListener(this);
         concatenatingMediaSource=new ConcatenatingMediaSource();
 
@@ -179,6 +187,10 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                     String device_id = snapshot.getString("device_id");
 
                     if (!device_id.equals(Utils.get_device_id(context))){
+                        /*if (player!=null) {
+                            player.stop(true);
+                            player.release();
+                        }*/
                         Intent intent=new Intent();
                         intent.setAction(Utils.DEVICE_CHECK);
                         sendBroadcast(intent);
@@ -212,7 +224,25 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
             playlist.clear();
         }
         MediaSource[] mediaSources = new ProgressiveMediaSource[songList.size()];
-        for (int i=0; i<mediaSources.length;i++){
+
+        concatenatingMediaSource=new ConcatenatingMediaSource();
+        MediaSource mediaSource = getMedia(song);
+        concatenatingMediaSource.addMediaSource(mediaSource);
+        playlist.add(song);
+
+        for (int i=0; i<songList.size(); i++){
+            if (songList.get(i)!=song){
+                mediaSource = getMedia(songList.get(i));
+                concatenatingMediaSource.addMediaSource(mediaSource);
+                playlist.add(songList.get(i));
+            }
+        }
+
+        player.prepare(concatenatingMediaSource);
+        player.seekTo(0,C.TIME_UNSET);
+        player.setPlayWhenReady(true);
+
+        /*for (int i=0; i<mediaSources.length;i++){
             MediaSource mediaSource = getMedia(songList.get(i));
             mediaSources[i]=mediaSource;
 
@@ -223,12 +253,12 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         int index=songList.indexOf(song);
         player.prepare(concatenatingMediaSource);
         player.seekTo(index,C.TIME_UNSET);
-        player.setPlayWhenReady(true);
+        player.setPlayWhenReady(true);*/
 
     }
 
     public MediaSource getMedia(Song song){
-        DownloadRequest downloadRequest = songDownloadManager.getDownloadTracker().getDownloadRequest(Uri.parse(song.getUrl()));
+        DownloadRequest downloadRequest = SongDownloadManager.getDownloadTracker(context).getDownloadRequest(Uri.parse(song.getUrl()));
         if (downloadRequest != null) {
             return DownloadHelper.createMediaSource(downloadRequest, dataSourceFactory);
         }
@@ -260,7 +290,8 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                     @Nullable
                     @Override
                     public Bitmap getCurrentLargeIcon(Player player, PlayerNotificationManager.BitmapCallback callback) {
-                        return getAlbumImage(playlist.get(player.getCurrentWindowIndex()));
+                        //return getAlbumImage(playlist.get(player.getCurrentWindowIndex()));
+                        return null;
                     }
                 }, new PlayerNotificationManager.NotificationListener() {
                     @Override
@@ -308,6 +339,28 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
     }
 
+    public void add_record(Song song) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("user", user.getUid());
+        map.put("song", song.getId());
+
+        Log.e("LAUNCHED", "ADD_RECORD");
+        DocumentReference doc = db.collection(Utils.COLLECTION_RECORD).document(user.getUid()+song.getId());
+
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Nullable
+            @Override
+            public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(doc);
+                int listen_count = Integer.parseInt(snapshot.getString("listen_count"))+1;
+                transaction.update(doc, "listen_count", listen_count);
+                transaction.update(doc, "user", user.getUid());
+                transaction.update(doc, "song", song.getId());
+                return null;
+            }
+        });
+    }
+
     public void initialize_broadcasts(){
         IntentFilter add_queue_filter = new IntentFilter();
         add_queue_filter.addAction(ADD_TO_QUEUE);
@@ -325,7 +378,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
             @Override
             public void onReceive(Context context, Intent intent) {
                 Song song=(Song)intent.getParcelableExtra(AUDIO_EXTRA);
-                downloadTracker.toggleDownload(song.getUrl(),Uri.parse(song.getUrl()));
+                downloadTracker.toggleDownload(song.getTitle(),Uri.parse(song.getUrl()));
 
             }
         };
@@ -336,6 +389,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
             @Override
             public void onReceive(Context context, Intent intent) {
                 Song song=(Song)intent.getParcelableExtra(AUDIO_EXTRA);
+                Log.e("SONG", song.getTitle());
                 ArrayList<Song> list = intent.getParcelableArrayListExtra(AUDIO_LIST_EXTRA);
                 play_song(song,list);
 
@@ -354,8 +408,9 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
     }
 
     public Bitmap getAlbumImage(Song song){
-
-        mediaMetadataRetriever.setDataSource(context,Uri.parse(song.getUrl()));
+        Log.e("AAA",song.getUrl());
+        mediaMetadataRetriever.setDataSource(song.getUrl());
+        //mediaMetadataRetriever.setDataSource(song.getPath(),new HashMap<String, String>());
         //String albumName = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
         byte[] artBytes =  mediaMetadataRetriever.getEmbeddedPicture();
         if(artBytes!=null)
@@ -364,6 +419,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
             albumImage = BitmapFactory.decodeByteArray(artBytes, 0, artBytes.length);
         }
 
+        mediaMetadataRetriever.release();
         return albumImage;
     }
 
@@ -386,14 +442,13 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
             @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-                if (playbackState == Player.STATE_READY) {
-                    if (player.getPlayWhenReady()) {
-                        // In Playing state
-                    } else {
-                        // In Paused state
-                    }
-                } else if (playbackState == Player.STATE_ENDED) {
-                    // In Ended state
+                if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
+                    long currentTime = player.getCurrentPosition();
+                    long duration = player.getDuration();
+                    long benchmark = duration/2;
+
+                    Log.e("HELLO", "NOW  "+currentTime);
+                    if (currentTime>benchmark) add_record(playlist.get(player.getCurrentWindowIndex()));
                 }
             }
 
@@ -460,6 +515,16 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         if (add_queue_receiver != null) {
             unregisterReceiver(add_queue_receiver);
             add_queue_receiver = null;
+        }
+
+        if (play_song_receiver != null) {
+            unregisterReceiver(play_song_receiver);
+            play_song_receiver = null;
+        }
+
+        if (download_song_receiver != null) {
+            unregisterReceiver(download_song_receiver);
+            download_song_receiver = null;
         }
 
         downloadTracker.removeListener(this);

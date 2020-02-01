@@ -33,6 +33,16 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         updateNavigationBarState();
     }
 
+    @Override
+    protected void onDestroy() {
+        if (checkBroadcast != null) {
+            unregisterReceiver(checkBroadcast);
+            checkBroadcast = null;
+        }
+
+        super.onDestroy();
+    }
+
     // Remove inter-activity transition to avoid screen tossing on tapping bottom navigation items
     @Override
     public void onPause() {

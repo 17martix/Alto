@@ -13,12 +13,9 @@ import androidx.preference.PreferenceFragmentCompat;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.structurecode.alto.AuthActivity;
 import com.structurecode.alto.Helpers.Utils;
@@ -28,14 +25,14 @@ import com.structurecode.alto.R;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.structurecode.alto.Helpers.Utils.user;
+import static com.structurecode.alto.Helpers.Utils.db;
+import static com.structurecode.alto.Helpers.Utils.mAuth;
+
 public class SettingFragment extends PreferenceFragmentCompat {
     private CheckBoxPreference is_library_downloaded;
     private CheckBoxPreference is_playlist_downloaded;
-    private ListPreference cache_size;
     private Preference log_out;
-
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -43,12 +40,7 @@ public class SettingFragment extends PreferenceFragmentCompat {
 
         is_library_downloaded=findPreference("is_library_downloaded");
         is_playlist_downloaded=findPreference("is_playlist_downloaded");
-        cache_size=findPreference("cache_size");
         log_out=findPreference("log_out");
-
-        mAuth = FirebaseAuth.getInstance();
-        db= FirebaseFirestore.getInstance();
-        FirebaseUser user = mAuth.getCurrentUser();
 
         final DocumentReference docRef = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
                 .collection(Utils.COLLECTION_SETTINGS).document(user.getUid());
@@ -69,17 +61,6 @@ public class SettingFragment extends PreferenceFragmentCompat {
                     if (setting.getIs_playlist_downloaded()==1) is_playlist_downloaded.setChecked(true);
                     else is_playlist_downloaded.setChecked(false);
 
-                    int cache_index=0;
-                    if (setting.getCache_size()==100) cache_index=0;
-                    else if (setting.getCache_size()==500) cache_index=1;
-                    else if (setting.getCache_size()==1000) cache_index=2;
-                    else if (setting.getCache_size()==5000) cache_index=3;
-
-                    cache_size.setValueIndex(cache_index);
-                    cache_size.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
-
-                } else {
-                    Log.d("ABC", "Current data: null");
                 }
             }
         });
@@ -99,7 +80,7 @@ public class SettingFragment extends PreferenceFragmentCompat {
 
                 db.collection(Utils.COLLECTION_USERS).document(user.getUid())
                         .collection(Utils.COLLECTION_SETTINGS).document(user.getUid())
-                        .set(map)
+                        .update(map)
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {
@@ -130,33 +111,7 @@ public class SettingFragment extends PreferenceFragmentCompat {
 
                 db.collection(Utils.COLLECTION_USERS).document(user.getUid())
                         .collection(Utils.COLLECTION_SETTINGS).document(user.getUid())
-                        .set(map)
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Log.d("ABC", "DocumentSnapshot successfully written!");
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.w("ABC", "Error writing document", e);
-                            }
-                        });
-                return true;
-            }
-        });
-
-        cache_size.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-
-                Map<String, Object> map = new HashMap<>();
-                map.put("cache_size", newValue.toString());
-
-                db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                        .collection(Utils.COLLECTION_SETTINGS).document(user.getUid())
-                        .set(map)
+                        .update(map)
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {

@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="bottom"
     android:layoutDirection="ltr"
-    android:background="@color/main_color_30_transparency"
+    android:background="@color/main_color_50_transparency"
     android:orientation="vertical"
     tools:targetApi="28">
 
