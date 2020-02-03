@@ -1,8 +1,10 @@
 package com.structurecode.alto;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -16,7 +18,11 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Services.PlayerService;
+
+import static com.structurecode.alto.Helpers.Utils.DEVICE_CHECK;
 
 public class PlayerActivity extends AppCompatActivity {
     private PlayerView playerView;
@@ -24,6 +30,7 @@ public class PlayerActivity extends AppCompatActivity {
     private boolean serviceBound=false;
     private Intent serviceIntent=null;
     private TextView song_info;
+    private BroadcastReceiver checkBroadcast;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -38,6 +45,20 @@ public class PlayerActivity extends AppCompatActivity {
         song_info= findViewById(R.id.SongInfo);
         startService();
         playerView.showController();
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(DEVICE_CHECK);
+        checkBroadcast =new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                FirebaseAuth mAuth = FirebaseAuth.getInstance();
+                mAuth.signOut();
+                Intent i=new Intent(context, AuthActivity.class);
+                startActivity(i);
+                finish();
+            }
+        };
+        registerReceiver(checkBroadcast,intentFilter);
     }
 
     @Override
@@ -111,7 +132,12 @@ public class PlayerActivity extends AppCompatActivity {
         if (serviceBound) {
             unbindService(serviceConnection);
             //service is active
-            player.stopSelf();
+            //player.stopSelf();
+        }
+
+        if (checkBroadcast != null) {
+            unregisterReceiver(checkBroadcast);
+            checkBroadcast = null;
         }
     }
 

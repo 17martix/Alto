@@ -32,6 +32,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.structurecode.alto.Helpers.Utils;
+import com.structurecode.alto.Models.Setting;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -154,18 +155,15 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-
-                            Map<String, Object> map = new HashMap<>();
-                            map.put("is_library_downloaded", 1);
-                            map.put("is_playlist_downloaded", 1);
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            Setting setting=new Setting(1,1,0,0);
                             db.collection(Utils.COLLECTION_USERS).document(user.getUid())
                                     .collection(Utils.COLLECTION_SETTINGS).document(user.getUid())
-                                    .update(map)
+                                    .set(setting)
                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
                                         public void onSuccess(Void aVoid) {
                                             Log.d("ABC", "DocumentSnapshot successfully written!");
-                                            FirebaseUser user = mAuth.getCurrentUser();
                                             updateUI(user);
                                         }
                                     })

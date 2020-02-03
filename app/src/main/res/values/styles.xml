@@ -7,23 +7,28 @@
     <style name="BaseTheme" parent="AppTheme">
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
-        <item name="colorPrimary">@color/main_color</item>
-        <item name="colorPrimaryDark">@color/main_color_pure</item>
-        <item name="colorAccent">@color/main_color</item>
-        <item name="android:textColor">@color/text</item>
+        <item name="colorPrimary">@color/primaryColor</item>
+        <item name="colorPrimaryDark">@color/primaryDarkColor</item>
+        <item name="colorAccent">@color/primaryColor</item>
+        <item name="android:textColor">@color/textColor</item>
+        <item name="android:popupMenuStyle">@style/PopupMenu</item>
     </style>
 
     <style name="LaunchTheme" parent="AppTheme">
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
-        <item name="colorPrimary">@color/main_color</item>
-        <item name="colorPrimaryDark">@color/main_color_pure</item>
-        <item name="colorAccent">@color/main_color</item>
-        <item name="android:textColorPrimary">@color/main_color</item>
-        <item name="android:windowBackground">@color/main_color</item>
+        <item name="colorPrimary">@color/primaryColor</item>
+        <item name="colorPrimaryDark">@color/primaryColor</item>
+        <item name="colorAccent">@color/primaryColor</item>
+        <item name="android:textColorPrimary">@color/textColor</item>
+        <item name="android:windowBackground">@color/primaryColor</item>
     </style>
 
-    <style name="TrackSelectionDialogThemeOverlay" parent="ThemeOverlay.AppCompat.Dialog.Alert">
-        <item name="windowNoTitle">false</item>
+    <style name="PopupMenu" parent="@android:style/Widget.PopupMenu">
+        <item name="android:popupBackground">@color/primaryBackgroundColor</item>
+    </style>
+
+    <style name="DialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:background">@color/primaryBackgroundColor</item>
     </style>
 </resources>

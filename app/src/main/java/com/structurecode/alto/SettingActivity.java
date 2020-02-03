@@ -1,6 +1,9 @@
 package com.structurecode.alto;
 
 import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -8,8 +11,11 @@ import android.view.MenuItem;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.structurecode.alto.Fragments.SettingFragment;
 import com.structurecode.alto.Helpers.Utils;
+
+import static com.structurecode.alto.Helpers.Utils.DEVICE_CHECK;
 
 public class SettingActivity extends AppCompatActivity {
     private BroadcastReceiver checkBroadcast;
@@ -27,7 +33,20 @@ public class SettingActivity extends AppCompatActivity {
                 .beginTransaction()
                 .replace(R.id.settings_container, new SettingFragment())
                 .commit();
-        Utils.device_check_broadcast(SettingActivity.this,checkBroadcast);
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(DEVICE_CHECK);
+        checkBroadcast =new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                FirebaseAuth mAuth = FirebaseAuth.getInstance();
+                mAuth.signOut();
+                Intent i=new Intent(context, AuthActivity.class);
+                startActivity(i);
+                finish();
+            }
+        };
+        registerReceiver(checkBroadcast,intentFilter);
     }
 
     @Override
@@ -46,5 +65,15 @@ public class SettingActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (checkBroadcast != null) {
+            unregisterReceiver(checkBroadcast);
+            checkBroadcast = null;
+        }
+
+        super.onDestroy();
     }
 }

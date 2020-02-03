@@ -17,7 +17,7 @@
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
         android:forceHasOverlappingRendering="true"
-        android:background="@color/background"
+        android:background="@color/primaryBackgroundColor"
         android:id="@+id/settings_container">
 
     </FrameLayout>

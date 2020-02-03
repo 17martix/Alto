@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/songItem"
     android:layout_width="match_parent"
-    app:cardBackgroundColor="@color/background"
+    app:cardBackgroundColor="@color/primaryBackgroundColor"
     android:padding="0dp"
     android:layout_margin="0dp"
     android:layout_height="wrap_content">
@@ -29,7 +29,7 @@
                 <ImageView
                     android:layout_width="1dp"
                     android:layout_height="match_parent"
-                    android:background="@color/main_color"
+                    android:background="@color/primaryColor"
                     android:id="@+id/line_down"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
@@ -46,7 +46,7 @@
                         android:layout_width="14dp"
                         android:layout_height="1dp"
                         android:layout_gravity="center_vertical"
-                        android:background="@color/main_color"
+                        android:background="@color/primaryColor"
                         />
                 </LinearLayout>
 
@@ -142,7 +142,7 @@
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/main_color"
+            android:background="@color/primaryColor"
             />
     </LinearLayout>
 

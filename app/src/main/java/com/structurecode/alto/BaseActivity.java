@@ -1,7 +1,10 @@
 package com.structurecode.alto;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.MenuItem;
 
@@ -9,7 +12,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 import com.structurecode.alto.Helpers.Utils;
+
+import static com.structurecode.alto.Helpers.Utils.DEVICE_CHECK;
 
 public abstract class BaseActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
 
@@ -24,7 +30,19 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         navigationView = (BottomNavigationView) findViewById(R.id.navigation);
         navigationView.setOnNavigationItemSelectedListener(this);
 
-        Utils.device_check_broadcast(BaseActivity.this,checkBroadcast);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(DEVICE_CHECK);
+        checkBroadcast =new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                FirebaseAuth mAuth = FirebaseAuth.getInstance();
+                mAuth.signOut();
+                Intent i=new Intent(context, AuthActivity.class);
+                startActivity(i);
+                finish();
+            }
+        };
+        registerReceiver(checkBroadcast,intentFilter);
     }
 
     @Override

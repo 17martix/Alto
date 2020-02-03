@@ -58,6 +58,8 @@ public class SongFragment extends Fragment {
 
         recyclerView.setAdapter(adapter);
 
+        initialize_broadcasts();
+
         return view;
     }
 
@@ -87,15 +89,19 @@ public class SongFragment extends Fragment {
     }
 
     @Override
-    public void onDestroy() {
+    public void onDestroyView() {
         if (download_completed_broadcast != null) {
             getContext().unregisterReceiver(download_completed_broadcast);
             download_completed_broadcast = null;
         }
-        super.onDestroy();
+        super.onDestroyView();
     }
 
     public RecyclerView getRecyclerView() {
         return recyclerView;
+    }
+
+    public SongAdapter getAdapter() {
+        return adapter;
     }
 }

@@ -84,6 +84,7 @@ public class SongDownloadTracker {
         Download download = downloads.get(uri);
         if (download != null) {
             DownloadService.sendRemoveDownload(context, SongDownloadService.class, download.request.id, false);
+
         } else {
             if (startDownloadDialogHelper != null) {
                 startDownloadDialogHelper.release();

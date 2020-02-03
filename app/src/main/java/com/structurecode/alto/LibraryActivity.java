@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,35 +18,27 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.preference.ListPreference;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.ui.PlayerControlView;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.structurecode.alto.Fragments.PlaylistFragment;
 import com.structurecode.alto.Fragments.SongFragment;
 import com.structurecode.alto.Helpers.Utils;
-import com.structurecode.alto.Models.Song;
+import com.structurecode.alto.Models.Playlist;
 import com.structurecode.alto.Services.PlayerService;
 
 import java.util.ArrayList;
@@ -71,6 +62,9 @@ public class LibraryActivity extends BaseActivity {
     private LinearLayout mini_player_music;
     private CoordinatorLayout coordinatorLayout;
     private TextView song_info;
+
+    private final List<Fragment> mFragmentList = new ArrayList<>();
+    private final List<String> mFragmentTitleList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,13 +101,14 @@ public class LibraryActivity extends BaseActivity {
 
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        adapter.addFragment(new PlaylistFragment(), getString(R.string.playlists));
         adapter.addFragment(new SongFragment(), getString(R.string.songs));
         viewPager.setAdapter(adapter);
     }
 
-    class ViewPagerAdapter extends FragmentPagerAdapter {
-        private final List<Fragment> mFragmentList = new ArrayList<>();
-        private final List<String> mFragmentTitleList = new ArrayList<>();
+    public class ViewPagerAdapter extends FragmentPagerAdapter {
+        /*private final List<Fragment> mFragmentList = new ArrayList<>();
+        private final List<String> mFragmentTitleList = new ArrayList<>();*/
 
         public ViewPagerAdapter(FragmentManager manager) {
             super(manager,BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
@@ -142,12 +137,13 @@ public class LibraryActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         if (serviceBound) {
             unbindService(serviceConnection);
             //service is active
-            player.stopSelf();
+            //player.stopSelf();
         }
+
+        super.onDestroy();
     }
 
     @Override
@@ -178,15 +174,9 @@ public class LibraryActivity extends BaseActivity {
                 display_new_playlist_dialog(R.string.new_playlist,R.string.create,"",false,0);
                 break;
             case R.id.action_shuffle:
-                CollectionReference col = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                        .collection(Utils.COLLECTION_LIBRARY);
-                col.get().addOnSuccessListener(queryDocumentSnapshots -> {
-                    /*List<Song> list = queryDocumentSnapshots.toObjects(Song.class);
-                    int random = new Random().nextInt(list.size());
-                    Song song = list.get(random);
-                    player.play_song(song,list);*/
-                    SongFragment fragment = ((SongFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_library_songs));
-                    int total_Count = fragment.getRecyclerView().getAdapter().getItemCount()-1;
+                SongFragment fragment = (SongFragment) mFragmentList.get(0);
+                if (fragment.getAdapter().getItemCount() > 0) {
+                    int total_Count = fragment.getRecyclerView().getAdapter().getItemCount();
                     int random = new Random().nextInt(total_Count);
                     new Handler().postDelayed(new Runnable() {
                         @Override
@@ -194,7 +184,7 @@ public class LibraryActivity extends BaseActivity {
                             fragment.getRecyclerView().findViewHolderForAdapterPosition(random).itemView.performClick();
                         }
                     },1);
-                });
+                }
                 break;
         }
 
@@ -214,10 +204,9 @@ public class LibraryActivity extends BaseActivity {
     private void display_new_playlist_dialog(@StringRes int title, @StringRes int positiveText, final String playlistTitle,
                                              boolean is_private_retrieved, final int playlistId){
 
-        LayoutInflater li = LayoutInflater.from(getApplicationContext());
-        View view = li.inflate(R.layout.dialog_playlist, null);
+        View view = getLayoutInflater().inflate(R.layout.dialog_playlist, null);
 
-        AlertDialog alertDialog = new AlertDialog.Builder(this)
+        AlertDialog alertDialog = new AlertDialog.Builder(this,R.style.DialogTheme)
                 .setTitle(title)
                 .setView(view)
                 .setPositiveButton(positiveText, new DialogInterface.OnClickListener() {
@@ -234,7 +223,22 @@ public class LibraryActivity extends BaseActivity {
                             inputTitle=inputTitle.trim();
                         }
 
-                        // CODE FFFFFFFFFFFFFFFFFFFFF
+                        Playlist playlist=new Playlist(inputTitle,exposure);
+                        db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                                .collection(Utils.COLLECTION_PLAYLISTS).document()
+                                .set(playlist)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        Log.d("ABC", "DocumentSnapshot successfully written!");
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.w("ABC", "Error writing document", e);
+                                    }
+                                });
                     }
                 }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override

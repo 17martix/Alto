@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:minHeight="?attr/actionBarSize"
-    android:background="?attr/colorPrimary"
+    android:background="@color/primaryColor"
+    local:titleTextColor="@color/textColor"
     local:theme="@style/BaseTheme"
     local:popupTheme="@style/BaseTheme"
     />

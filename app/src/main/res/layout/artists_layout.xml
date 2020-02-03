@@ -14,7 +14,7 @@
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:background="@color/second_background"
+            android:background="@color/primaryBackgroundColor"
             android:paddingHorizontal="@dimen/padding_card_horizontal"
             android:paddingVertical="@dimen/padding_card_vertical"
             android:layout_height="55dp"
@@ -75,6 +75,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
+            android:background="@color/primaryBackgroundColor"
             android:id="@+id/artist_songs">
 
         </androidx.recyclerview.widget.RecyclerView>
@@ -82,7 +83,7 @@
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/main_color"
+            android:background="@color/primaryColor"
             />
     </LinearLayout>
 

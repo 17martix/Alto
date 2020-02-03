@@ -55,8 +55,8 @@
     <string name="sync_log_out">Log Out</string>
 
     <string name="download_library">Download Library</string>
-    <string name="download_library_summary_on">Your library music will be available offline</string>
-    <string name="download_library_summary_off">Your library music won\'t be available offline</string>
+    <string name="download_library_summary_on">Your music library will be available offline</string>
+    <string name="download_library_summary_off">Your music library won\'t be available offline</string>
 
     <string name="download_playlist">Download Playlist</string>
     <string name="download_playlist_summary_on">Playlist in your library will be available offline</string>

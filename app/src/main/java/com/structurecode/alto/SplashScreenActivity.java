@@ -93,11 +93,16 @@ public class SplashScreenActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null){
-            new Handler().postDelayed(() -> {
-                Intent i = new Intent(SplashScreenActivity.this, LibraryActivity.class);
-                startActivity(i);
-                finish();
-            }, SPLASH_TIME_OUT);
+            if (currentUser.isEmailVerified()){
+                new Handler().postDelayed(() -> {
+                    Intent i = new Intent(SplashScreenActivity.this, LibraryActivity.class);
+                    startActivity(i);
+                    finish();
+                }, SPLASH_TIME_OUT);
+            }else {
+                login();
+            }
+
         }else{
             login();
         }

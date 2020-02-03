@@ -43,6 +43,8 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.PlayerNotificationManager;
 import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -54,6 +56,7 @@ import com.google.firebase.firestore.Transaction;
 import com.structurecode.alto.Download.SongDownloadManager;
 import com.structurecode.alto.Download.SongDownloadTracker;
 import com.structurecode.alto.Helpers.Utils;
+import com.structurecode.alto.Models.Setting;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 
@@ -61,6 +64,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import wseemann.media.FFmpegMediaMetadataRetriever;
 
@@ -104,6 +109,9 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
     private FFmpegMediaMetadataRetriever mediaMetadataRetriever;
     private Bitmap albumImage=null;
+    private Setting setting;
+    private Timer timer;
+    private boolean timer_on=false;
 
     @Override
     public void onCreate() {
@@ -111,11 +119,12 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
         context=this;
         playlist=new ArrayList<>();
-        mediaMetadataRetriever = new FFmpegMediaMetadataRetriever();
+        timer=new Timer();
 
         mAuth=FirebaseAuth.getInstance();
         db= FirebaseFirestore.getInstance();
         user = mAuth.getCurrentUser();
+        setting = new Setting(1,1,0,0);
 
         dataSourceFactory = SongDownloadManager.buildDataSourceFactory(context);
         downloadTracker = SongDownloadManager.getDownloadTracker(context);
@@ -133,11 +142,15 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                 .setTrackSelector(trackSelector)
                 .setLoadControl(loadControl)
                 .build();
+        player.setRepeatMode(setting.getRepeat_mode());
+        if (setting.getShuffle_mode()==0) player.setShuffleModeEnabled(false);
+        else player.setShuffleModeEnabled(true);
 
         initialize_broadcasts();
         notification_manager();
         addPlayerListener();
         deviceCheck();
+        setting_check();
 
         // Start the download service if it should be running but it's not currently.
         // Starting the service in the foreground causes notification flicker if there is no scheduled
@@ -168,6 +181,84 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         sendBroadcast(intent);
     }
 
+    public void setting_check(){
+        mAuth = FirebaseAuth.getInstance();
+        db= FirebaseFirestore.getInstance();
+        FirebaseUser user = mAuth.getCurrentUser();
+
+        final DocumentReference docRef = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                .collection(Utils.COLLECTION_SETTINGS).document(user.getUid());
+        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w("ABC", "Listen failed.", e);
+                    return;
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+
+                    setting = snapshot.toObject(Setting.class);
+                    player.setRepeatMode(setting.getRepeat_mode());
+                    if (setting.getShuffle_mode()==0) player.setShuffleModeEnabled(false);
+                    else player.setShuffleModeEnabled(true);
+
+
+
+                } else {
+                    Log.d("ABC", "Current data: null");
+                }
+            }
+        });
+    }
+
+    public void song_played_record(){
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                long currentTime = player.getCurrentPosition();
+                long duration = player.getDuration();
+                long benchmark = duration/2;
+                if (currentTime>benchmark) {
+                    db= FirebaseFirestore.getInstance();
+                    Log.e("HELLO", "FINALLY IN  "+benchmark);
+                    Song song=playlist.get(player.getCurrentWindowIndex());
+                    String path = user.getUid()+song.getId();
+                    DocumentReference doc = db.collection(Utils.COLLECTION_METRICS).document(path);
+                    db.runTransaction(new Transaction.Function<Void>() {
+                        @Nullable
+                        @Override
+                        public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
+                            DocumentSnapshot snapshot = transaction.get(doc);
+                            String listen_count = snapshot.getString("play");
+                            int play;
+                            if (listen_count==null || listen_count.isEmpty()) play=1;
+                            else play=1+Integer.parseInt(listen_count);
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("user", user.getUid());
+                            map.put("song", song.getId());
+                            map.put("play", String.valueOf(play));
+                            transaction.set(doc,map);
+                            return null;
+                        }
+                    }).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Log.e("OOOOOOF","SUCESSSSSS");
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e("WHHAAAT","FAILLURE  " +e.getMessage());
+                        }
+                    });
+                    timer_on=false;
+                    cancel();
+                }
+            }
+        },0,10000);
+    }
+
     public void deviceCheck(){
         mAuth = FirebaseAuth.getInstance();
         db= FirebaseFirestore.getInstance();
@@ -182,22 +273,16 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                     return;
                 }
 
-                if (snapshot != null && snapshot.exists()) {
+                String device_id = snapshot.getString("device_id");
 
-                    String device_id = snapshot.getString("device_id");
-
-                    if (!device_id.equals(Utils.get_device_id(context))){
+                if (!device_id.equals(Utils.get_device_id(context))) {
                         /*if (player!=null) {
                             player.stop(true);
                             player.release();
                         }*/
-                        Intent intent=new Intent();
-                        intent.setAction(Utils.DEVICE_CHECK);
-                        sendBroadcast(intent);
-                    }
-
-                } else {
-                    Log.d("ABC", "Current data: null");
+                    Intent intent = new Intent();
+                    intent.setAction(Utils.DEVICE_CHECK);
+                    sendBroadcast(intent);
                 }
             }
         });
@@ -231,7 +316,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         playlist.add(song);
 
         for (int i=0; i<songList.size(); i++){
-            if (songList.get(i)!=song){
+            if (!songList.get(i).getId().equals(song.getId())){
                 mediaSource = getMedia(songList.get(i));
                 concatenatingMediaSource.addMediaSource(mediaSource);
                 playlist.add(songList.get(i));
@@ -339,13 +424,13 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
     }
 
-    public void add_record(Song song) {
+    /*public void add_record(Song song) {
         Map<String, Object> map = new HashMap<>();
         map.put("user", user.getUid());
         map.put("song", song.getId());
 
         Log.e("LAUNCHED", "ADD_RECORD");
-        DocumentReference doc = db.collection(Utils.COLLECTION_RECORD).document(user.getUid()+song.getId());
+        DocumentReference doc = db.collection(Utils.COLLECTION_METRICS).document(user.getUid()+song.getId());
 
         db.runTransaction(new Transaction.Function<Void>() {
             @Nullable
@@ -359,7 +444,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                 return null;
             }
         });
-    }
+    }*/
 
     public void initialize_broadcasts(){
         IntentFilter add_queue_filter = new IntentFilter();
@@ -409,17 +494,21 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
     public Bitmap getAlbumImage(Song song){
         Log.e("AAA",song.getUrl());
-        mediaMetadataRetriever.setDataSource(song.getUrl());
-        //mediaMetadataRetriever.setDataSource(song.getPath(),new HashMap<String, String>());
-        //String albumName = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
-        byte[] artBytes =  mediaMetadataRetriever.getEmbeddedPicture();
-        if(artBytes!=null)
-        {
-            //     InputStream is = new ByteArrayInputStream(mmr.getEmbeddedPicture());
-            albumImage = BitmapFactory.decodeByteArray(artBytes, 0, artBytes.length);
-        }
+        mediaMetadataRetriever = new FFmpegMediaMetadataRetriever();
+        try {
+            mediaMetadataRetriever.setDataSource(song.getUrl(), new HashMap<String, String>());
+            //mediaMetadataRetriever.setDataSource(song.getPath(),new HashMap<String, String>());
+            //String albumName = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+            byte[] artBytes = mediaMetadataRetriever.getEmbeddedPicture();
+            if (artBytes != null) {
+                //     InputStream is = new ByteArrayInputStream(mmr.getEmbeddedPicture());
+                albumImage = BitmapFactory.decodeByteArray(artBytes, 0, artBytes.length);
+            }
 
-        mediaMetadataRetriever.release();
+            mediaMetadataRetriever.release();
+        }catch (Exception e){
+            Log.e("error","some errors");
+        }
         return albumImage;
     }
 
@@ -427,49 +516,77 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         player.addListener(new Player.EventListener() {
             @Override
             public void onTimelineChanged(Timeline timeline, int reason) {
-
             }
 
             @Override
             public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-
-            }
-
-            @Override
-            public void onLoadingChanged(boolean isLoading) {
-
-            }
-
-            @Override
-            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-                if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
-                    long currentTime = player.getCurrentPosition();
-                    long duration = player.getDuration();
-                    long benchmark = duration/2;
-
-                    Log.e("HELLO", "NOW  "+currentTime);
-                    if (currentTime>benchmark) add_record(playlist.get(player.getCurrentWindowIndex()));
+                if (!timer_on){
+                    timer_on=true;
+                    song_played_record();
                 }
             }
 
             @Override
-            public void onPlaybackSuppressionReasonChanged(int playbackSuppressionReason) {
+            public void onLoadingChanged(boolean isLoading) {
+            }
 
+            @Override
+            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+            }
+
+            @Override
+            public void onPlaybackSuppressionReasonChanged(int playbackSuppressionReason) {
             }
 
             @Override
             public void onIsPlayingChanged(boolean isPlaying) {
-
             }
 
             @Override
             public void onRepeatModeChanged(int repeatMode) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("repeat_mode", repeatMode);
 
+                db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                        .collection(Utils.COLLECTION_SETTINGS).document(user.getUid())
+                        .update(map)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Log.d("ABC", "DocumentSnapshot successfully written!");
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.w("ABC", "Error writing document", e);
+                            }
+                        });
             }
 
             @Override
             public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
+                int value;
+                if (shuffleModeEnabled) value=1;
+                else value = 0;
+                Map<String, Object> map = new HashMap<>();
+                map.put("shuffle_mode", value);
 
+                db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                        .collection(Utils.COLLECTION_SETTINGS).document(user.getUid())
+                        .update(map)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Log.d("ABC", "DocumentSnapshot successfully written!");
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.w("ABC", "Error writing document", e);
+                            }
+                        });
             }
 
             @Override
@@ -479,7 +596,6 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
             @Override
             public void onPositionDiscontinuity(int reason) {
-
             }
 
             @Override

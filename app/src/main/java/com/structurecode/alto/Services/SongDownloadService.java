@@ -59,21 +59,32 @@ public class SongDownloadService extends DownloadService {
 
     @Override
     protected void onDownloadChanged(Download download) {
-        Intent intent1 = new Intent();
-        intent1.setAction(DOWNLOAD_COMPLETED);
-        sendBroadcast(intent1);
+
+        if (download.state == Download.STATE_COMPLETED) {
+            Intent intent1 = new Intent();
+            intent1.setAction(DOWNLOAD_COMPLETED);
+            sendBroadcast(intent1);
+        } else if (download.state == Download.STATE_FAILED) {
+            Intent intent1 = new Intent();
+            intent1.setAction(DOWNLOAD_COMPLETED);
+            sendBroadcast(intent1);
+        } else {
+            Intent intent1 = new Intent();
+            intent1.setAction(DOWNLOAD_COMPLETED);
+            sendBroadcast(intent1);
+        }
         /*Notification notification;
         if (download.state == Download.STATE_COMPLETED) {
             notification =
                     notificationHelper.buildDownloadCompletedNotification(
                             R.drawable.done,
-                            *//* contentIntent= *//* null,
+                             null,
                             Util.fromUtf8Bytes(download.request.data));
         } else if (download.state == Download.STATE_FAILED) {
             notification =
                     notificationHelper.buildDownloadFailedNotification(
                             R.drawable.failed,
-                            *//* contentIntent= *//* null,
+                             null,
                             Util.fromUtf8Bytes(download.request.data));
         } else {
             return;

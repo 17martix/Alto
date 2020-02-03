@@ -4,8 +4,9 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/main_color"
+    android:background="@color/secondaryBackgroundColor"
     android:layout_marginBottom="0dp"
+    android:elevation="10dp"
     android:paddingBottom="0dp">
 
     <com.google.android.exoplayer2.ui.PlayerControlView
@@ -20,8 +21,8 @@
         />
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/main_color"
+        android:layout_height="2dp"
+        android:background="@color/primaryColor"
         />
 
 </LinearLayout>

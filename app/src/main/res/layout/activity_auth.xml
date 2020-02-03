@@ -4,7 +4,7 @@
     android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="#FFFFFF"
     android:orientation="vertical">
 
     <LinearLayout
@@ -28,7 +28,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/auth_layout"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:background="@color/main_color_40_transparency"
+        android:background="@color/transparent_background"
         android:paddingVertical="@dimen/activity_vertical_margin"
         android:orientation="vertical"
         android:gravity="center_vertical">
@@ -36,6 +36,7 @@
             android:id="@+id/status"
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
+            android:textColor="@color/textColor"
             android:gravity="center"
             android:layout_marginBottom="@dimen/activity_vertical_margin"
             android:text="@string/signed_out" />
@@ -54,6 +55,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:textColor="@color/textColor"
+                android:textColorHint="@color/textColor"
                 android:hint="@string/hint_email"
                 android:inputType="textEmailAddress" />
 
@@ -62,6 +65,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:textColor="@color/textColor"
+                android:textColorHint="@color/textColor"
                 android:hint="@string/hint_password"
                 android:inputType="textPassword" />
         </LinearLayout>
@@ -91,7 +96,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/sign_in"
-                    android:background="@color/main_color" />
+                    android:textColor="@color/textColor"
+                    android:background="@color/primaryColor" />
 
                 <Button
                     android:id="@+id/emailCreateAccountButton"
@@ -101,7 +107,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/create_account"
-                    android:background="@color/main_color" />
+                    android:textColor="@color/textColor"
+                    android:background="@color/primaryColor" />
             </LinearLayout>
 
             <LinearLayout
@@ -115,7 +122,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/google_sign_in"
-                    android:background="@color/main_color_40_transparency"
+                    android:background="@color/primaryColor"
                     android:id="@+id/googleSignIn"
                     />
             </LinearLayout>
@@ -139,7 +146,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.0"
-                android:background="@color/main_color"
+                android:textColor="@color/textColor"
+                android:background="@color/primaryColor"
                 android:text="@string/sign_out" />
 
             <Button
@@ -149,7 +157,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.0"
-                android:background="@color/main_color"
+                android:textColor="@color/textColor"
+                android:background="@color/primaryColor"
                 android:text="@string/verify_email" />
 
         </LinearLayout>

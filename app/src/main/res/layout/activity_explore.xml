@@ -32,6 +32,8 @@
                     android:id="@+id/tabs_discover"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@color/primaryColor"
+                    app:tabTextColor="@color/textColor"
                     app:tabGravity="fill"
                     app:tabMode="fixed"  />
 
@@ -40,9 +42,8 @@
             <androidx.viewpager.widget.ViewPager
                 android:id="@+id/pager_discover"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="9"
-                android:background="@color/background"
+                android:layout_height="wrap_content"
+                android:background="@color/primaryBackgroundColor"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"  />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>

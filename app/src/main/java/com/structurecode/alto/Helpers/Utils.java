@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -54,7 +55,9 @@ public class Utils {
     public static final String COLLECTION_USERS="users";
     public static final String COLLECTION_SETTINGS="settings";
     public static final String COLLECTION_LIBRARY="library";
-    public static final String COLLECTION_RECORD="record";
+    public static final String COLLECTION_METRICS ="metrics";
+    public static final String COLLECTION_PLAYLISTS ="playlists";
+    public static final String COLLECTION_SONGS="songs";
 
     public static final String DEVICE_CHECK="com.structurecode.alto.device.check";
 
@@ -63,6 +66,9 @@ public class Utils {
     public static FirebaseUser user = mAuth.getCurrentUser();
 
     public static String music_url = "https://storage.googleapis.com/alto-a7134.appspot.com/";
+
+    public Utils() {
+    }
 
     public static void show_mini_player(boolean show, Context context, CoordinatorLayout coordinatorLayout, LinearLayout mini_player){
         final float scale = context.getResources().getDisplayMetrics().density;
@@ -80,7 +86,7 @@ public class Utils {
         }
     }
 
-    public static void device_check_broadcast(Context context, BroadcastReceiver broadcastReceiver){
+    /*public void device_check_broadcast(Context context, BroadcastReceiver broadcastReceiver){
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(DEVICE_CHECK);
         broadcastReceiver =new BroadcastReceiver() {
@@ -95,7 +101,7 @@ public class Utils {
         };
 
         context.registerReceiver(broadcastReceiver,intentFilter);
-    }
+    }*/
 
     public static void setMargins (View v, int l, int t, int r, int b) {
         if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {

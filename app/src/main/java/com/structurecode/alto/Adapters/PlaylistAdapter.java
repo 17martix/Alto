@@ -1,0 +1,191 @@
+package com.structurecode.alto.Adapters;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.Query;
+import com.structurecode.alto.Helpers.Utils;
+import com.structurecode.alto.Models.Playlist;
+import com.structurecode.alto.Models.Song;
+import com.structurecode.alto.R;
+
+import java.util.Collections;
+import java.util.List;
+
+import static com.structurecode.alto.Helpers.Utils.db;
+import static com.structurecode.alto.Helpers.Utils.user;
+import static com.structurecode.alto.Helpers.Utils.mAuth;
+
+public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, PlaylistAdapter.PlaylistViewHolder> {
+    Context context;
+
+    public PlaylistAdapter(@NonNull FirestoreRecyclerOptions<Playlist> options, Context context) {
+        super(options);
+        this.context = context;
+    }
+
+    @NonNull
+    @Override
+    public PlaylistViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.playlist_layout, parent, false);
+        PlaylistViewHolder holder = new PlaylistViewHolder(v);
+        return holder;
+    }
+
+    @Override
+    protected void onBindViewHolder(@NonNull PlaylistViewHolder holder, int position, @NonNull Playlist playlist) {
+        holder.playlist_name.setText(playlist.getTitle());
+
+        user = mAuth.getCurrentUser();
+        Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                .collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots().getSnapshot(position).getId())
+                .collection(Utils.COLLECTION_SONGS)
+                .orderBy("title",Query.Direction.ASCENDING);
+
+        FirestoreRecyclerOptions<Song> options = new FirestoreRecyclerOptions.Builder<Song>()
+                .setQuery(query, Song.class)
+                .build();
+        holder.playlist_songs_recycler_view.setVisibility(View.GONE);
+        SongAdapter songAdapter = new SongAdapter(options,context,false);
+        holder.playlist_songs_recycler_view.setHasFixedSize(true);
+        holder.playlist_songs_recycler_view.setLayoutManager(new LinearLayoutManager(context));
+        holder.playlist_songs_recycler_view.setAdapter(songAdapter);
+    }
+
+    public void deleteItem(int position) {
+        getSnapshots().getSnapshot(position).getReference().delete();
+    }
+
+    class PlaylistViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+
+        ImageButton more;
+        TextView playlist_name;
+        RecyclerView playlist_songs_recycler_view;
+
+        PlaylistViewHolder(View itemView) {
+            super(itemView);
+            more=(ImageButton)itemView.findViewById(R.id.moreItemPlaylist);
+            playlist_name=(TextView) itemView.findViewById(R.id.playlistName);
+            playlist_songs_recycler_view=itemView.findViewById(R.id.playlist_songs);
+
+            itemView.setOnClickListener(this);
+            more.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            int clickedPosition=getAdapterPosition();
+            if (v.getId() == more.getId()){
+                Playlist playlist=getSnapshots().getSnapshot(clickedPosition).toObject(Playlist.class);
+                PopupMenu popup=new PopupMenu(context,more);
+                popup.inflate(R.menu.menu_playlist_options);
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem menuItem) {
+                        switch (menuItem.getItemId()){
+                            case R.id.editPlaylist:
+                                View view = ((Activity)context).getLayoutInflater().inflate(R.layout.dialog_playlist, null);
+                                ((EditText) view.findViewById(R.id.title_txt)).setText(playlist.getTitle());
+                                if (playlist.getExposure().equals(context.getString(R.string.exposure_private))){
+                                    ((CheckBox) view.findViewById(R.id.exposure)).setChecked(true);
+                                }else {
+                                    ((CheckBox) view.findViewById(R.id.exposure)).setChecked(false);
+                                }
+
+                                AlertDialog alertDialog = new AlertDialog.Builder(context,R.style.DialogTheme)
+                                        .setTitle(R.string.editPlaylist)
+                                        .setView(view)
+                                        .setPositiveButton(R.string.edit, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                String exposure=context.getString(R.string.exposure_public);
+                                                boolean is_private = ((CheckBox) view.findViewById(R.id.exposure)).isChecked();
+                                                if(is_private) exposure=context.getString(R.string.exposure_private);
+
+                                                String inputTitle = ((EditText) view.findViewById(R.id.title_txt)).getText().toString();
+                                                if (inputTitle==null || inputTitle.isEmpty()) {
+                                                    inputTitle = context.getString(R.string.untitled);
+                                                }else {
+                                                    inputTitle=inputTitle.trim();
+                                                }
+
+                                                Playlist new_playlist=new Playlist(inputTitle,exposure);
+                                                db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                                                        .collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots()
+                                                        .getSnapshot(clickedPosition).getId())
+                                                        .set(new_playlist)
+                                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                            @Override
+                                                            public void onSuccess(Void aVoid) {
+                                                                Log.d("ABC", "DocumentSnapshot successfully written!");
+                                                            }
+                                                        })
+                                                        .addOnFailureListener(new OnFailureListener() {
+                                                            @Override
+                                                            public void onFailure(@NonNull Exception e) {
+                                                                Log.w("ABC", "Error writing document", e);
+                                                            }
+                                                        });
+                                            }
+                                        }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        }).create();
+                                alertDialog.show();
+                                break;
+                            case R.id.deletePlaylist:
+                                db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                                        .collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots().getSnapshot(clickedPosition).getId())
+                                        .delete()
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                Log.d("ABC", "DocumentSnapshot successfully written!");
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Log.w("ABC", "Error writing document", e);
+                                            }
+                                        });
+                                break;
+                        }
+
+                        return false;
+                    }
+                });
+
+                popup.show();
+            }else {
+                if (playlist_songs_recycler_view.getVisibility()==View.VISIBLE){
+                    playlist_songs_recycler_view.setVisibility(View.GONE);
+                }else {
+                    playlist_songs_recycler_view.setVisibility(View.VISIBLE);
+                }
+            }
+        }
+    }
+}
