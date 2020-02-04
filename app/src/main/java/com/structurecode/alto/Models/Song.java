@@ -12,6 +12,7 @@ public class Song implements Parcelable {
     private String album;
     private String path;
     private String url;
+    private String playlist_id;
 
     public Song() {
     }
@@ -25,6 +26,16 @@ public class Song implements Parcelable {
         this.url = url;
     }
 
+    public Song(String id, String title, String artist, String album, String path, String url, String playlist_id) {
+        this.id = id;
+        this.title = title;
+        this.artist = artist;
+        this.album = album;
+        this.path = path;
+        this.url = url;
+        this.playlist_id = playlist_id;
+    }
+
     protected Song(Parcel in) {
         id = in.readString();
         title = in.readString();
@@ -32,6 +43,7 @@ public class Song implements Parcelable {
         album = in.readString();
         path = in.readString();
         url = in.readString();
+        playlist_id = in.readString();
     }
 
     public static final Creator<Song> CREATOR = new Creator<Song>() {
@@ -79,10 +91,11 @@ public class Song implements Parcelable {
     }
 
     public String getPath() {
-        /*String p = path.replaceAll(" ", "%20");
-        String url = Utils.music_url+p;
-        return url;*/
         return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public String getUrl() {
@@ -93,8 +106,12 @@ public class Song implements Parcelable {
         this.url = url;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public String getPlaylist_id() {
+        return playlist_id;
+    }
+
+    public void setPlaylist_id(String playlist_id) {
+        this.playlist_id = playlist_id;
     }
 
     @Override
@@ -110,5 +127,6 @@ public class Song implements Parcelable {
         dest.writeString(album);
         dest.writeString(path);
         dest.writeString(url);
+        dest.writeString(playlist_id);
     }
 }

@@ -35,6 +35,8 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.structurecode.alto.Fragments.AlbumFragment;
+import com.structurecode.alto.Fragments.ArtistFragment;
 import com.structurecode.alto.Fragments.PlaylistFragment;
 import com.structurecode.alto.Fragments.SongFragment;
 import com.structurecode.alto.Helpers.Utils;
@@ -103,6 +105,8 @@ public class LibraryActivity extends BaseActivity {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(new PlaylistFragment(), getString(R.string.playlists));
         adapter.addFragment(new SongFragment(), getString(R.string.songs));
+        adapter.addFragment(new ArtistFragment(), getString(R.string.artists));
+        adapter.addFragment(new AlbumFragment(), getString(R.string.albums));
         viewPager.setAdapter(adapter);
     }
 
@@ -174,7 +178,7 @@ public class LibraryActivity extends BaseActivity {
                 display_new_playlist_dialog(R.string.new_playlist,R.string.create,"",false,0);
                 break;
             case R.id.action_shuffle:
-                SongFragment fragment = (SongFragment) mFragmentList.get(0);
+                SongFragment fragment = (SongFragment) mFragmentList.get(1);
                 if (fragment.getAdapter().getItemCount() > 0) {
                     int total_Count = fragment.getRecyclerView().getAdapter().getItemCount();
                     int random = new Random().nextInt(total_Count);

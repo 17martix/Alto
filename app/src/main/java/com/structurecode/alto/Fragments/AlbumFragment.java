@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,9 +15,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.firestore.Query;
-import com.structurecode.alto.Adapters.PlaylistAdapter;
+import com.structurecode.alto.Adapters.AlbumAdapter;
+import com.structurecode.alto.Adapters.ArtistAdapter;
 import com.structurecode.alto.Helpers.Utils;
-import com.structurecode.alto.Models.Playlist;
+import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 
 import static com.structurecode.alto.Helpers.Utils.db;
@@ -28,13 +28,13 @@ import static com.structurecode.alto.Helpers.Utils.user;
  * Created by Guy on 4/23/2017.
  */
 
-public class PlaylistFragment extends Fragment {
-    private PlaylistAdapter adapter;
+public class AlbumFragment extends Fragment {
+    private AlbumAdapter adapter;
     private RecyclerView recyclerView;
-    private BroadcastReceiver added_to_playlist_broadcast;
-    private BroadcastReceiver remove_to_playlist_broadcast;
+    private BroadcastReceiver added_album_song_broadcast;
+    private BroadcastReceiver remove_album_song_broadcast;
 
-    public PlaylistFragment() {
+    public AlbumFragment() {
         // Required empty public constructor
     }
 
@@ -46,58 +46,58 @@ public class PlaylistFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final View view=inflater.inflate(R.layout.fragment_library_playlists, container, false);
+        final View view=inflater.inflate(R.layout.fragment_library_albums, container, false);
 
-        recyclerView = (RecyclerView) view.findViewById(R.id.PlaylistList);
+        recyclerView = (RecyclerView) view.findViewById(R.id.AlbumList);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                .collection(Utils.COLLECTION_PLAYLISTS).orderBy("title",Query.Direction.ASCENDING);
+                .collection(Utils.COLLECTION_LIBRARY).orderBy("album",Query.Direction.ASCENDING);
 
-        FirestoreRecyclerOptions<Playlist> options = new FirestoreRecyclerOptions.Builder<Playlist>()
-                .setQuery(query, Playlist.class)
+        FirestoreRecyclerOptions<Song> options = new FirestoreRecyclerOptions.Builder<Song>()
+                .setQuery(query, Song.class)
                 .build();
-        adapter = new PlaylistAdapter(options,getContext());
+        adapter = new AlbumAdapter(options,getContext());
         recyclerView.setAdapter(adapter);
 
         initialize_broadcasts();
-
+        // Inflate the layout for this fragment
         return view;
     }
 
     public void initialize_broadcasts(){
-        IntentFilter added_to_playlist_filter = new IntentFilter();
-        added_to_playlist_filter.addAction(Utils.ADDED_TO_PLAYLIST);
-        added_to_playlist_broadcast =new BroadcastReceiver() {
+        IntentFilter added_album_song_filter = new IntentFilter();
+        added_album_song_filter.addAction(Utils.ADDED_SONG_TO_LIBRARY);
+        added_album_song_broadcast =new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 adapter.notifyDataSetChanged();
             }
         };
 
-        IntentFilter remove_to_playlist_filter = new IntentFilter();
-        remove_to_playlist_filter.addAction(Utils.REMOVED_TO_PLAYLIST);
-        remove_to_playlist_broadcast =new BroadcastReceiver() {
+        IntentFilter remove_album_song_filter = new IntentFilter();
+        remove_album_song_filter.addAction(Utils.REMOVED_SONG_TO_LIBRARY);
+        remove_album_song_broadcast =new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 adapter.notifyDataSetChanged();
             }
         };
 
-        getContext().registerReceiver(remove_to_playlist_broadcast,remove_to_playlist_filter);
-        getContext().registerReceiver(added_to_playlist_broadcast,added_to_playlist_filter);
+        getContext().registerReceiver(remove_album_song_broadcast,remove_album_song_filter);
+        getContext().registerReceiver(added_album_song_broadcast,added_album_song_filter);
     }
 
     @Override
     public void onDestroy() {
-        if (added_to_playlist_broadcast != null) {
-            getContext().unregisterReceiver(added_to_playlist_broadcast);
-            added_to_playlist_broadcast = null;
+        if (added_album_song_broadcast != null) {
+            getContext().unregisterReceiver(added_album_song_broadcast);
+            added_album_song_broadcast = null;
         }
 
-        if (remove_to_playlist_broadcast != null) {
-            getContext().unregisterReceiver(remove_to_playlist_broadcast);
-            remove_to_playlist_broadcast = null;
+        if (remove_album_song_broadcast != null) {
+            getContext().unregisterReceiver(remove_album_song_broadcast);
+            remove_album_song_broadcast = null;
         }
         super.onDestroy();
     }
@@ -113,5 +113,6 @@ public class PlaylistFragment extends Fragment {
         super.onStop();
         adapter.stopListening();
     }
+
 
 }

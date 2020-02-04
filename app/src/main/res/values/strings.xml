@@ -75,7 +75,7 @@
     <string name="addLibrary">Add to Library</string>
     <string name="removeLibrary">Remove from Library</string>
     <string name="addPlaylist">Add to Playlist</string>
-    <string name="removePlaylist">Remove from Playlist</string>
+    <string name="removePlaylist">Remove From Playlist</string>
     <string name="goArtist">Go to Artist</string>
     <string name="goAlbum">Go to Album</string>
     <string name="editPlaylist">Edit Details</string>
@@ -97,8 +97,6 @@
     <string name="exposure_public">Public</string>
     <string name="exposure_private">Private</string>
 
-    <string name="artist_song_count">Song</string>
-    <string name="artist_song_counts">Songs</string>
     <string name="artist_album_count">Album</string>
     <string name="artist_album_counts">Albums</string>
     <string name="library_empty">Library Empty</string>

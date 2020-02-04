@@ -60,6 +60,12 @@ public class Utils {
     public static final String COLLECTION_SONGS="songs";
 
     public static final String DEVICE_CHECK="com.structurecode.alto.device.check";
+    public static final String ADDED_TO_PLAYLIST="com.structurecode.alto.services.playlist.added";
+    public static final String ADDED_SONG_TO_LIBRARY="com.structurecode.alto.services.library.added";
+    public static final String REMOVED_TO_PLAYLIST="com.structurecode.alto.services.playlist.removed";
+    public static final String REMOVED_SONG_TO_LIBRARY="com.structurecode.alto.services.library.removed";
+
+    public static final String POSITION="position";
 
     public static FirebaseAuth mAuth=FirebaseAuth.getInstance();
     public static FirebaseFirestore db= FirebaseFirestore.getInstance();

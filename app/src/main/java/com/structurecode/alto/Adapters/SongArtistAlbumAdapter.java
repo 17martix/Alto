@@ -20,8 +20,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
-import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -36,7 +34,9 @@ import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.structurecode.alto.Helpers.Utils.COLLECTION_PLAYLISTS;
@@ -50,38 +50,50 @@ import static com.structurecode.alto.Services.PlayerService.AUDIO_LIST_EXTRA;
 import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_SONG;
 import static com.structurecode.alto.Services.PlayerService.PLAY_SONG;
 
-public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.SongViewHolder> {
+/**
+ * Created by Guy on 4/17/2017.
+ */
+
+public class SongArtistAlbumAdapter extends RecyclerView.Adapter<SongArtistAlbumAdapter.SongViewHolder> {
+    List<Song> list = Collections.emptyList();
     Context context;
     boolean is_parent;
     boolean is_downloaded;
 
-    public SongAdapter(@NonNull FirestoreRecyclerOptions<Song> options,Context context, boolean is_parent) {
-        super(options);
+    public SongArtistAlbumAdapter(List<Song> list, Context context, boolean is_parent) {
+        this.list = list;
         this.context = context;
         this.is_parent=is_parent;
     }
 
     @Override
-    protected void onBindViewHolder(@NonNull SongViewHolder holder, int position, @NonNull Song song) {
+    public SongViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.songs_layout, parent, false);
+        SongViewHolder holder = new SongViewHolder(v);
+        return holder;
+    }
+
+    @Override
+    public void onBindViewHolder(SongViewHolder holder, int position) {
         if (is_parent) holder.tree.setVisibility(View.GONE);
         else holder.tree.setVisibility(View.VISIBLE);
 
-        holder.title.setText(song.getTitle());
-        holder.artist.setText(song.getArtist());
-        holder.album.setText(song.getAlbum());
+        holder.title.setText(list.get(position).getTitle());
+        holder.artist.setText(list.get(position).getArtist());
+        holder.album.setText(list.get(position).getAlbum());
 
-        if (song.getUrl()==null || song.getUrl().isEmpty()){
+        if (list.get(position).getUrl()==null || list.get(position).getUrl().isEmpty()){
             FirebaseStorage storage = FirebaseStorage.getInstance();
             StorageReference storageRef = storage.getReference();
-            storageRef.child(song.getPath()).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            storageRef.child(list.get(position).getPath()).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                 @Override
                 public void onSuccess(Uri uri) {
-                    song.setUrl(uri.toString());
+                    list.get(position).setUrl(uri.toString());
 
                     Map<String, Object> map = new HashMap<>();
                     map.put("url", uri.toString());
 
-                    is_downloaded=SongDownloadManager.getDownloadTracker(context).isDownloaded(Uri.parse(song.getUrl()));
+                    is_downloaded= SongDownloadManager.getDownloadTracker(context).isDownloaded(Uri.parse(list.get(position).getUrl()));
                     if (is_downloaded){
                         holder.downloaded.setVisibility(View.VISIBLE);
                         holder.popup.getMenu().findItem(R.id.download).setTitle(R.string.action_remove_download);
@@ -92,7 +104,7 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                     }
 
                     db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                            .collection(Utils.COLLECTION_LIBRARY).document(song.getId())
+                            .collection(Utils.COLLECTION_LIBRARY).document(list.get(position).getId())
                             .update(map)
                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
@@ -109,7 +121,7 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                 }
             });
         }else {
-            is_downloaded=SongDownloadManager.getDownloadTracker(context).isDownloaded(Uri.parse(song.getUrl()));
+            is_downloaded=SongDownloadManager.getDownloadTracker(context).isDownloaded(Uri.parse(list.get(position).getUrl()));
             if (is_downloaded){
                 holder.downloaded.setVisibility(View.VISIBLE);
                 holder.popup.getMenu().findItem(R.id.download).setTitle(R.string.action_remove_download);
@@ -121,19 +133,17 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
         }
     }
 
-    @NonNull
     @Override
-    public SongViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.songs_layout, parent, false);
-        SongViewHolder holder = new SongViewHolder(v);
-        return holder;
+    public int getItemCount() {
+        return list.size();
     }
 
-    public void deleteItem(int position) {
-        getSnapshots().getSnapshot(position).getReference().delete();
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
     }
 
-    public class SongViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    class SongViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         ConstraintLayout tree;
         ImageButton more;
@@ -164,11 +174,11 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
             final int clickedPosition=getAdapterPosition();
             if (clickedPosition != RecyclerView.NO_POSITION) {
                 if (v.getId() == more.getId()) {
-                    Song song = getSnapshots().getSnapshot(clickedPosition).toObject(Song.class);
+                    Song song = list.get(clickedPosition);
                     popup.setOnMenuItemClickListener(menuItem -> {
                         switch (menuItem.getItemId()) {
                             case R.id.addQueue:
-                                if (song.getUrl()!=null && !song.getUrl().isEmpty()) {
+                                if (song.getUrl() != null && !song.getUrl().isEmpty()) {
                                     Intent intent1 = new Intent();
                                     intent1.setAction(ADD_TO_QUEUE);
                                     intent1.putExtra(AUDIO_EXTRA, song);
@@ -176,7 +186,7 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                                 }
                                 break;
                             case R.id.download:
-                                if (song.getUrl()!=null && !song.getUrl().isEmpty()) {
+                                if (song.getUrl() != null && !song.getUrl().isEmpty()) {
                                     Intent intent2 = new Intent();
                                     intent2.setAction(DOWNLOAD_SONG);
                                     intent2.putExtra(AUDIO_EXTRA, song);
@@ -185,7 +195,7 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                                 break;
                             case R.id.addLibrary:
                                 db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(Utils.COLLECTION_LIBRARY)
-                                        .document(getSnapshots().getSnapshot(clickedPosition).getId())
+                                        .document(song.getId())
                                         .delete().addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void aVoid) {
@@ -196,7 +206,6 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                                 });
                                 break;
                             case R.id.addPlaylist:
-                                ArrayList<Playlist> list = new ArrayList<>();
                                 db= FirebaseFirestore.getInstance();
                                 user = mAuth.getCurrentUser();
 
@@ -207,9 +216,6 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                                         if (queryDocumentSnapshots.isEmpty()) {
                                             return;
                                         } else {
-
-                                            /*List<Playlist> l = queryDocumentSnapshots.toObjects(Playlist.class);
-                                            list.addAll(l);*/
 
                                             ArrayList<String> titles = new ArrayList<>();
                                             ArrayList<String> ids = new ArrayList<>();
@@ -228,16 +234,15 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                                                     .create();
                                             dialog.show();
 
-                                            Song playlist_song = getSnapshots().getSnapshot(clickedPosition).toObject(Song.class);
+                                            Song song = list.get(clickedPosition);
                                             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                                 @Override
                                                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                                                    //playlist_song.setId(getSnapshots().getSnapshot(clickedPosition).getId());
-                                                    playlist_song.setPlaylist_id(ids.get(position));
+                                                    song.setPlaylist_id(ids.get(position));
                                                     db.collection(Utils.COLLECTION_USERS).document(user.getUid())
                                                             .collection(Utils.COLLECTION_PLAYLISTS).document(ids.get(position))
-                                                            .collection(COLLECTION_SONGS).document(getSnapshots().getSnapshot(clickedPosition).getId())
-                                                            .set(playlist_song)
+                                                            .collection(COLLECTION_SONGS).document(song.getId())
+                                                            .set(song)
                                                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                                 @Override
                                                                 public void onSuccess(Void aVoid) {
@@ -268,18 +273,15 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
 
                     popup.show();
                 } else {
-                    Song song = getSnapshots().getSnapshot(clickedPosition).toObject(Song.class);
-                    if (song.getUrl()!=null && !song.getUrl().isEmpty()) {
+                    Song song = list.get(clickedPosition);
+                    if (song.getUrl() != null && !song.getUrl().isEmpty()) {
 
-                        ArrayList<Song> list = new ArrayList<>();
-                        for (int i=0; i<getSnapshots().size(); i++){
-                            list.add(getSnapshots().getSnapshot(i).toObject(Song.class));
-                        }
+                        ArrayList<Song> arrayList = new ArrayList<>();
+                        arrayList.addAll(list);
 
                         Intent intent3 = new Intent();
                         intent3.setAction(PLAY_SONG);
-                        intent3.putParcelableArrayListExtra(AUDIO_LIST_EXTRA, list);
-
+                        intent3.putParcelableArrayListExtra(AUDIO_LIST_EXTRA, arrayList);
                         intent3.putExtra(AUDIO_EXTRA, song);
                         context.sendBroadcast(intent3);
                     }
@@ -287,4 +289,5 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
             }
         }
     }
+
 }

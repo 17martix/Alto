@@ -3,34 +3,10 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="@color/primaryBackgroundColor">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_height="match_parent"
-        android:id="@+id/ListContainer"
-        android:visibility="visible"
-        android:orientation="vertical">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_height="match_parent"
-            android:layout_width="match_parent"
-            android:id="@+id/ArtistList">
-
-        </androidx.recyclerview.widget.RecyclerView>
-    </LinearLayout>
-
-    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:id="@+id/NoList"
-        android:visibility="gone">
-        <TextView
-            android:text="@string/library_empty"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:textSize="@dimen/large" />
+        android:id="@+id/ArtistList">
 
-    </LinearLayout>
-
+    </androidx.recyclerview.widget.RecyclerView>
 </RelativeLayout>

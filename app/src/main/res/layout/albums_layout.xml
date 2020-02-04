@@ -23,9 +23,8 @@
 
             <LinearLayout
                 android:orientation="vertical"
-                android:layout_width="0sp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="4.6"
                 android:weightSum="2">
 
                 <TextView
@@ -34,6 +33,8 @@
                     android:layout_height="0sp"
                     android:layout_weight="1"
                     android:textSize="@dimen/normal_sp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:textStyle="bold"
                     android:id="@+id/albumName" />
                 <LinearLayout
@@ -48,6 +49,8 @@
                         android:layout_width="0sp"
                         android:layout_weight="1"
                         android:textSize="@dimen/small_sp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
                         android:textStyle="italic"
                         android:layout_height="wrap_content"
                         android:id="@+id/artistName" />
@@ -57,19 +60,13 @@
                         android:layout_width="0sp"
                         android:layout_weight="1"
                         android:textSize="@dimen/small_sp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
                         android:textStyle="italic"
                         android:layout_height="wrap_content"
                         android:id="@+id/songCount" />
                 </LinearLayout>
             </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/moreItemAlbum"
-                android:layout_width="0sp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.4"
-                android:src="@drawable/more"
-                android:background="@null"/>
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView

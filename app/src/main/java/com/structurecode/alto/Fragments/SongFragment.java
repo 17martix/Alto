@@ -89,12 +89,12 @@ public class SongFragment extends Fragment {
     }
 
     @Override
-    public void onDestroyView() {
+    public void onDestroy() {
         if (download_completed_broadcast != null) {
             getContext().unregisterReceiver(download_completed_broadcast);
             download_completed_broadcast = null;
         }
-        super.onDestroyView();
+        super.onDestroy();
     }
 
     public RecyclerView getRecyclerView() {

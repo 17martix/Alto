@@ -5,19 +5,11 @@
     android:background="@color/primaryBackgroundColor"
     android:id="@+id/fragment_library_songs">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_height="match_parent"
-        android:id="@+id/ListContainer"
-        android:visibility="visible"
-        android:orientation="vertical">
+        android:layout_width="match_parent"
+        android:id="@+id/SongList">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_height="match_parent"
-            android:layout_width="match_parent"
-            android:id="@+id/SongList">
-
-        </androidx.recyclerview.widget.RecyclerView>
-    </LinearLayout>
+    </androidx.recyclerview.widget.RecyclerView>
 
 </FrameLayout>

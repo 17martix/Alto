@@ -23,18 +23,20 @@ import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Models.Playlist;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.ArrayList;
 
+import static com.structurecode.alto.Helpers.Utils.COLLECTION_SONGS;
 import static com.structurecode.alto.Helpers.Utils.db;
-import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Helpers.Utils.mAuth;
+import static com.structurecode.alto.Helpers.Utils.user;
 
 public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, PlaylistAdapter.PlaylistViewHolder> {
     Context context;
@@ -42,6 +44,7 @@ public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, Playlist
     public PlaylistAdapter(@NonNull FirestoreRecyclerOptions<Playlist> options, Context context) {
         super(options);
         this.context = context;
+        user = mAuth.getCurrentUser();
     }
 
     @NonNull
@@ -56,8 +59,7 @@ public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, Playlist
     protected void onBindViewHolder(@NonNull PlaylistViewHolder holder, int position, @NonNull Playlist playlist) {
         holder.playlist_name.setText(playlist.getTitle());
 
-        user = mAuth.getCurrentUser();
-        Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+        /*Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
                 .collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots().getSnapshot(position).getId())
                 .collection(Utils.COLLECTION_SONGS)
                 .orderBy("title",Query.Direction.ASCENDING);
@@ -65,11 +67,40 @@ public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, Playlist
         FirestoreRecyclerOptions<Song> options = new FirestoreRecyclerOptions.Builder<Song>()
                 .setQuery(query, Song.class)
                 .build();
-        holder.playlist_songs_recycler_view.setVisibility(View.GONE);
+        holder.playlist_songs_recycler_view.setVisibility(View.VISIBLE);
         SongAdapter songAdapter = new SongAdapter(options,context,false);
         holder.playlist_songs_recycler_view.setHasFixedSize(true);
         holder.playlist_songs_recycler_view.setLayoutManager(new LinearLayoutManager(context));
-        holder.playlist_songs_recycler_view.setAdapter(songAdapter);
+        holder.playlist_songs_recycler_view.setAdapter(songAdapter);*/
+
+        holder.song_count.setText("");
+        db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                .collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots().getSnapshot(position).getId())
+                .collection(COLLECTION_SONGS).orderBy("title",Query.Direction.ASCENDING)
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                ArrayList<Song> list=new ArrayList<>();
+                for (DocumentSnapshot snapshot : queryDocumentSnapshots) {
+                    list.add(snapshot.toObject(Song.class));
+                }
+
+                if (list!=null && !list.isEmpty()) {
+                    String number_songs = "";
+                    int songs_count = queryDocumentSnapshots.size();
+                    if (songs_count == 1)
+                        number_songs = "1 " + context.getString(R.string.song_count);
+                    else number_songs = songs_count + " " + context.getString(R.string.song_counts);
+                    holder.song_count.setText(number_songs);
+                }
+
+                holder.playlist_songs_recycler_view.setVisibility(View.GONE);
+                SongPlaylistAdapter songPlaylistAdapter =new SongPlaylistAdapter(list,context,false);
+                holder.playlist_songs_recycler_view.setHasFixedSize(true);
+                holder.playlist_songs_recycler_view.setLayoutManager(new LinearLayoutManager(context));
+                holder.playlist_songs_recycler_view.setAdapter(songPlaylistAdapter);
+            }
+        });
     }
 
     public void deleteItem(int position) {
@@ -80,12 +111,14 @@ public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, Playlist
 
         ImageButton more;
         TextView playlist_name;
+        TextView song_count;
         RecyclerView playlist_songs_recycler_view;
 
         PlaylistViewHolder(View itemView) {
             super(itemView);
             more=(ImageButton)itemView.findViewById(R.id.moreItemPlaylist);
             playlist_name=(TextView) itemView.findViewById(R.id.playlistName);
+            song_count=(TextView) itemView.findViewById(R.id.songCount);
             playlist_songs_recycler_view=itemView.findViewById(R.id.playlist_songs);
 
             itemView.setOnClickListener(this);

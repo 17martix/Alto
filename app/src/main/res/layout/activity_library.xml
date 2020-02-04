@@ -26,7 +26,8 @@
 
                 <include
                     android:id="@+id/toolbar_music"
-                    layout="@layout/toolbar"/>
+                    layout="@layout/toolbar"
+                    />
 
                 <com.google.android.material.tabs.TabLayout
                     android:id="@+id/tabs_music"
@@ -34,6 +35,8 @@
                     android:layout_height="wrap_content"
                     android:background="@color/primaryColor"
                     app:tabTextColor="@color/textColor"
+                    app:tabSelectedTextColor="@color/white"
+                    app:tabIndicatorColor="@color/accent_color"
                     app:tabGravity="fill"
                     app:tabMode="fixed" />
 

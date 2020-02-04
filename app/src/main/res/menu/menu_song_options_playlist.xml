@@ -7,12 +7,7 @@
 
     <item
         android:id="@+id/addPlaylist"
-        android:title="@string/addPlaylist" />
-
-    <item
-        android:id="@+id/addLibrary"
-        android:title="@string/removeLibrary" />
-
+        android:title="@string/removePlaylist" />
     <item
         android:id="@+id/download"
         android:title="@string/action_download" />

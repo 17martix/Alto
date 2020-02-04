@@ -19,8 +19,8 @@
         <item name="windowActionBar">false</item>
         <item name="colorPrimary">@color/primaryColor</item>
         <item name="colorPrimaryDark">@color/primaryColor</item>
-        <item name="colorAccent">@color/primaryColor</item>
-        <item name="android:textColorPrimary">@color/textColor</item>
+        <item name="colorAccent">@color/accent_color</item>
+        <item name="android:textColorPrimary">@color/accent_color</item>
         <item name="android:windowBackground">@color/primaryColor</item>
     </style>
 

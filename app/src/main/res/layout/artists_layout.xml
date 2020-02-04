@@ -18,14 +18,12 @@
             android:paddingHorizontal="@dimen/padding_card_horizontal"
             android:paddingVertical="@dimen/padding_card_vertical"
             android:layout_height="55dp"
-            android:elevation="@dimen/normal"
-            android:weightSum="5">
+            android:elevation="@dimen/normal">
 
             <LinearLayout
                 android:orientation="vertical"
-                android:layout_width="0sp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="4.6"
                 android:weightSum="2">
 
                 <TextView
@@ -34,42 +32,27 @@
                     android:layout_height="0sp"
                     android:layout_weight="1"
                     android:textSize="@dimen/normal_sp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:textStyle="bold"
                     android:id="@+id/artistName" />
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="0sp"
                     android:layout_weight="1"
-                    android:weightSum="2"
                     android:orientation="horizontal">
 
                     <TextView
                         android:text="TextView"
-                        android:layout_width="0sp"
-                        android:layout_weight="1"
+                        android:layout_width="match_parent"
                         android:textSize="@dimen/small_sp"
                         android:textStyle="italic"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/albumCount" />
-
-                    <TextView
-                        android:text="TextView"
-                        android:layout_width="0sp"
-                        android:layout_weight="1"
-                        android:textSize="@dimen/small_sp"
-                        android:textStyle="italic"
+                        android:ellipsize="end"
+                        android:maxLines="1"
                         android:layout_height="wrap_content"
                         android:id="@+id/songCount" />
                 </LinearLayout>
             </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/moreItemArtist"
-                android:layout_width="0sp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.4"
-                android:src="@drawable/more"
-                android:background="@null"/>
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
