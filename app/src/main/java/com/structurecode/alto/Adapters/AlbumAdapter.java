@@ -49,6 +49,8 @@ public class AlbumAdapter extends FirestoreRecyclerAdapter<Song, AlbumAdapter.Al
     @Override
     protected void onBindViewHolder(@NonNull AlbumViewHolder holder, int position, @NonNull Song song) {
         if (!albums.contains(song.getAlbum())) {
+            holder.itemView.setVisibility(View.VISIBLE);
+            holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             albums.add(song.getAlbum());
             holder.album_name.setText(song.getAlbum());
             holder.artist_name.setText(song.getArtist());
@@ -86,6 +88,9 @@ public class AlbumAdapter extends FirestoreRecyclerAdapter<Song, AlbumAdapter.Al
                     Log.e("Hello Album", "Hello Album "+e.getMessage());
                 }
             });
+        }else {
+            holder.itemView.setVisibility(View.GONE);
+            holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
         }
     }
 

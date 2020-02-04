@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -53,11 +54,13 @@ public class ArtistAdapter extends FirestoreRecyclerAdapter<Song, ArtistAdapter.
     protected void onBindViewHolder(@NonNull ArtistViewHolder holder, int position, @NonNull Song song) {
 
         if (!artists.contains(song.getArtist())) {
+            holder.itemView.setVisibility(View.VISIBLE);
+            holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             artists.add(song.getArtist());
             holder.artist_name.setText(song.getArtist());
 
             holder.song_count.setText("");
-            db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(Utils.COLLECTION_LIBRARY)
+            /*db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(Utils.COLLECTION_LIBRARY)
                     .whereEqualTo("artist",song.getArtist()).orderBy("title",Query.Direction.ASCENDING)
                     .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                 @Override
@@ -93,9 +96,9 @@ public class ArtistAdapter extends FirestoreRecyclerAdapter<Song, ArtistAdapter.
                 public void onFailure(@NonNull Exception e) {
                     Log.e("Hello Artist", "Hello Artist "+e.getMessage());
                 }
-            });
+            });*/
 
-            /*db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(Utils.COLLECTION_LIBRARY)
+            db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(Utils.COLLECTION_LIBRARY)
                     .whereEqualTo("artist",song.getArtist()).orderBy("title",Query.Direction.ASCENDING)
                     .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                 @Override
@@ -120,7 +123,10 @@ public class ArtistAdapter extends FirestoreRecyclerAdapter<Song, ArtistAdapter.
                     holder.artist_songs_recycler_view.setLayoutManager(new LinearLayoutManager(context));
                     holder.artist_songs_recycler_view.setAdapter(songArtistAlbumAdapter);
                 }
-            });*/
+            });
+        }else {
+            holder.itemView.setVisibility(View.GONE);
+            holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
         }
     }
 
