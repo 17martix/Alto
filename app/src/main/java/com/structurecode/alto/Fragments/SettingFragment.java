@@ -11,6 +11,7 @@ import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
+import com.google.android.exoplayer2.offline.DownloadService;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
@@ -21,6 +22,7 @@ import com.structurecode.alto.AuthActivity;
 import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Models.Setting;
 import com.structurecode.alto.R;
+import com.structurecode.alto.Services.SongDownloadService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +43,12 @@ public class SettingFragment extends PreferenceFragmentCompat {
         is_library_downloaded=findPreference("is_library_downloaded");
         is_playlist_downloaded=findPreference("is_playlist_downloaded");
         log_out=findPreference("log_out");
+
+        try {
+            DownloadService.start(getContext(), SongDownloadService.class);
+        } catch (IllegalStateException e) {
+            DownloadService.startForeground(getContext(), SongDownloadService.class);
+        }
 
         final DocumentReference docRef = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
                 .collection(Utils.COLLECTION_SETTINGS).document(user.getUid());
@@ -132,6 +140,7 @@ public class SettingFragment extends PreferenceFragmentCompat {
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 mAuth.signOut();
+                DownloadService.sendRemoveAllDownloads(getContext(),SongDownloadService.class,false);
                 Intent i=new Intent(getContext(), AuthActivity.class);
                 startActivity(i);
                 getActivity().finish();

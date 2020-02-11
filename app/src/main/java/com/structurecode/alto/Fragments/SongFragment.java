@@ -72,7 +72,7 @@ public class SongFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        adapter.stopListening();
+        //adapter.stopListening();
     }
 
     public void initialize_broadcasts(){

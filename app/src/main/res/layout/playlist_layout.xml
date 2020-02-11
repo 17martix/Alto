@@ -37,7 +37,7 @@
                     android:layout_weight="1"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:textSize="@dimen/normal_sp"
+                    android:textSize="@dimen/smallx_sp"
                     android:textStyle="bold"
                     android:id="@+id/playlistName" />
 

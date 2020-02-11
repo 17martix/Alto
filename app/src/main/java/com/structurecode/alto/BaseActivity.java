@@ -2,33 +2,69 @@ package com.structurecode.alto;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.structurecode.alto.Helpers.Utils;
+import com.structurecode.alto.Services.PlayerService;
 
 import static com.structurecode.alto.Helpers.Utils.DEVICE_CHECK;
 
 public abstract class BaseActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
 
     protected BottomNavigationView navigationView;
+    private Context context;
     private BroadcastReceiver checkBroadcast;
+
+    private PlayerControlView playerControlView;
+    public PlayerService player;
+    private boolean serviceBound=false;
+    private Intent serviceIntent=null;
+
+    private LinearLayout mini_player_music;
+    private CoordinatorLayout coordinatorLayout;
+    private TextView song_info;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(getLayoutId());
-
+        context = getContext();
         navigationView = (BottomNavigationView) findViewById(R.id.navigation);
         navigationView.setOnNavigationItemSelectedListener(this);
+
+        mini_player_music = findViewById(R.id.mini_player_music);
+        coordinatorLayout = findViewById(R.id.coord_music);
+        playerControlView=findViewById(R.id.audio_view);
+        song_info= findViewById(R.id.SongInfo);
+
+        startService();
+
+        mini_player_music.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent(getApplicationContext(), PlayerActivity.class);
+                startActivity(intent);
+            }
+        });
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(DEVICE_CHECK);
@@ -38,6 +74,7 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
                 FirebaseAuth mAuth = FirebaseAuth.getInstance();
                 mAuth.signOut();
                 Intent i=new Intent(context, AuthActivity.class);
+                player.stopSelf();
                 startActivity(i);
                 finish();
             }
@@ -53,6 +90,12 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
 
     @Override
     protected void onDestroy() {
+        if (serviceBound) {
+            unbindService(serviceConnection);
+            //service is active
+            //player.stopSelf();
+        }
+
         if (checkBroadcast != null) {
             unregisterReceiver(checkBroadcast);
             checkBroadcast = null;
@@ -71,11 +114,15 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
-        if (itemId == R.id.navigation_library) {
-            startActivity(new Intent(this, LibraryActivity.class));
+        switch (itemId){
+            case R.id.navigation_library:
+                startActivity(new Intent(context, LibraryActivity.class));
+                break;
+            case R.id.navigation_search:
+                startActivity(new Intent(context, SearchActivity.class));
+                break;
         }
-        finish();
-        return true;
+        return false;
     }
 
     private void updateNavigationBarState() {
@@ -91,4 +138,58 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
     abstract int getLayoutId(); // this is to return which layout(activity) needs to display when clicked on tabs.
 
     abstract int getBottomNavigationMenuItemId();//Which menu item selected and change the state of that menu item
+
+    abstract Context getContext();
+
+    public void startService(){
+        if(serviceIntent==null){
+            serviceIntent = new Intent(this, PlayerService.class);
+            bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+            startService(serviceIntent);
+        }
+    }
+
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            PlayerService.LocalBinder binder = (PlayerService.LocalBinder) service;
+            player = binder.getService();
+            serviceBound = true;
+
+            playerControlView.setPlayer(player.player);
+            update_player();
+            player.player.addListener(new Player.EventListener() {
+                @Override
+                public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+                    if (playbackState == PlaybackStateCompat.STATE_PLAYING){
+                        song_info.setText(player.GetPlayingInfo());
+                        Utils.show_mini_player(true,context,coordinatorLayout,mini_player_music);
+                    }
+
+                    if (playbackState == PlaybackStateCompat.STATE_STOPPED){
+                        Utils.show_mini_player(false,context,coordinatorLayout,mini_player_music);
+                    }
+                }
+
+                @Override
+                public void onPositionDiscontinuity(int reason) {
+                    song_info.setText(player.GetPlayingInfo());
+                }
+            });
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBound = false;
+        }
+    };
+
+    public  void update_player(){
+        if (player.player.getPlaybackState()!=Player.STATE_IDLE){
+            song_info.setText(player.GetPlayingInfo());
+            Utils.show_mini_player(true,context,coordinatorLayout,mini_player_music);
+        }
+    }
+
 }

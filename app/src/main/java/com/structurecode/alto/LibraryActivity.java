@@ -47,23 +47,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.mAuth;
+import static com.structurecode.alto.Helpers.Utils.user;
 
-public class LibraryActivity extends BaseActivity {
+public class LibraryActivity extends BaseActivity  {
 
     private TabLayout tabLayout;
     private ViewPager viewPager;
 
-    private PlayerControlView playerControlView;
+    /*private PlayerControlView playerControlView;
     public PlayerService player;
     private boolean serviceBound=false;
     private Intent serviceIntent=null;
 
     private LinearLayout mini_player_music;
     private CoordinatorLayout coordinatorLayout;
-    private TextView song_info;
+    private TextView song_info;*/
 
     private final List<Fragment> mFragmentList = new ArrayList<>();
     private final List<String> mFragmentTitleList = new ArrayList<>();
@@ -71,33 +71,37 @@ public class LibraryActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //setContentView(R.layout.activity_library);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_music);
         setSupportActionBar(toolbar);
 
         viewPager = findViewById(R.id.pager_music);
-        mini_player_music = findViewById(R.id.mini_player_music);
-        coordinatorLayout = findViewById(R.id.coord_music);
+        /*mini_player_music = findViewById(R.id.mini_player_music);
+        coordinatorLayout = findViewById(R.id.coord_music);*/
+        /*navigationView = (BottomNavigationView) findViewById(R.id.navigation);
+        navigationView.setOnNavigationItemSelectedListener(this);
+        update_navigation_bar();*/
         setupViewPager(viewPager);
         tabLayout = findViewById(R.id.tabs_music);
         tabLayout.setupWithViewPager(viewPager);
-        song_info= findViewById(R.id.SongInfo);
+//        song_info= findViewById(R.id.SongInfo);
 
         mAuth=FirebaseAuth.getInstance();
         db= FirebaseFirestore.getInstance();
         user = mAuth.getCurrentUser();
 
-        playerControlView=findViewById(R.id.audio_view);
+//        playerControlView=findViewById(R.id.audio_view);
 
-        startService();
+//        startService();
 
-        mini_player_music.setOnClickListener(new View.OnClickListener() {
+        /*mini_player_music.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent=new Intent(getApplicationContext(), PlayerActivity.class);
                 startActivity(intent);
             }
-        });
+        });*/
 
     }
 
@@ -141,13 +145,28 @@ public class LibraryActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        if (serviceBound) {
+        /*if (serviceBound) {
             unbindService(serviceConnection);
             //service is active
             //player.stopSelf();
-        }
+        }*/
 
         super.onDestroy();
+    }
+
+    @Override
+    int getLayoutId() {
+        return R.layout.activity_library;
+    }
+
+    @Override
+    int getBottomNavigationMenuItemId() {
+        return R.id.navigation_library;
+    }
+
+    @Override
+    Context getContext() {
+        return LibraryActivity.this;
     }
 
     @Override
@@ -195,15 +214,11 @@ public class LibraryActivity extends BaseActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    int getLayoutId() {
-        return R.layout.activity_library;
-    }
-
-    @Override
-    int getBottomNavigationMenuItemId() {
-        return R.id.navigation_library;
-    }
+    /*public void update_navigation_bar(){
+        int actionId = R.id.navigation_library;
+        MenuItem item = navigationView.getMenu().findItem(actionId);
+        item.setChecked(true);
+    }*/
 
     private void display_new_playlist_dialog(@StringRes int title, @StringRes int positiveText, final String playlistTitle,
                                              boolean is_private_retrieved, final int playlistId){
@@ -253,16 +268,16 @@ public class LibraryActivity extends BaseActivity {
         alertDialog.show();
     }
 
-    public void startService(){
+    /*public void startService(){
         if(serviceIntent==null){
             serviceIntent = new Intent(this, PlayerService.class);
             bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
             startService(serviceIntent);
         }
-    }
+    }*/
 
     //Binding this Client to the AudioPlayer Service
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+    /*private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             // We've bound to LocalService, cast the IBinder and get LocalService instance
@@ -296,12 +311,12 @@ public class LibraryActivity extends BaseActivity {
         public void onServiceDisconnected(ComponentName name) {
             serviceBound = false;
         }
-    };
+    };*/
 
-    public  void update_player(){
+    /*public  void update_player(){
         if (player.player.getPlaybackState()!=Player.STATE_IDLE){
             song_info.setText(player.GetPlayingInfo());
             Utils.show_mini_player(true,LibraryActivity.this,coordinatorLayout,mini_player_music);
         }
-    }
+    }*/
 }

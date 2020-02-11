@@ -19,6 +19,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.algolia.search.saas.Client;
+import com.algolia.search.saas.Index;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
@@ -56,6 +58,7 @@ import com.google.firebase.firestore.Transaction;
 import com.structurecode.alto.Download.SongDownloadManager;
 import com.structurecode.alto.Download.SongDownloadTracker;
 import com.structurecode.alto.Helpers.Utils;
+import com.structurecode.alto.Models.SearchConfig;
 import com.structurecode.alto.Models.Setting;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
@@ -81,7 +84,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
     public static final String AUDIO_EXTRA="song_extra";
     public static final String AUDIO_LIST_EXTRA="song_list_extra";
 
-    private static final String PLAYBACK_CHANNEL_ID="com.structurecode.alto.services.player.chanel.id.alto";
+    private static final String PLAYBACK_CHANNEL_ID="com.structurecode.alto.services.player.channel.id.alto";
     private static final int PLAYBACK_CHANNEL_NAME=4;
     private static final int PLAYBACK_CHANNEL_DESCRIPTION=3;
     private static final int PLAYBACK_NOTIFICATION_ID=2;
@@ -110,8 +113,12 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
     private FFmpegMediaMetadataRetriever mediaMetadataRetriever;
     private Bitmap albumImage=null;
     private Setting setting;
+    private SearchConfig searchConfig;
     private Timer timer;
     private boolean timer_on=false;
+
+    private Client client;
+    private Index index;
 
     @Override
     public void onCreate() {
@@ -125,6 +132,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         db= FirebaseFirestore.getInstance();
         user = mAuth.getCurrentUser();
         setting = new Setting(1,1,0,0);
+        searchConfig = new SearchConfig();
 
         dataSourceFactory = SongDownloadManager.buildDataSourceFactory(context);
         downloadTracker = SongDownloadManager.getDownloadTracker(context);
@@ -151,6 +159,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         addPlayerListener();
         deviceCheck();
         setting_check();
+        configuration_search();
 
         // Start the download service if it should be running but it's not currently.
         // Starting the service in the foreground causes notification flicker if there is no scheduled
@@ -199,11 +208,32 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                 if (snapshot != null && snapshot.exists()) {
 
                     setting = snapshot.toObject(Setting.class);
-                    player.setRepeatMode(setting.getRepeat_mode());
-                    if (setting.getShuffle_mode()==0) player.setShuffleModeEnabled(false);
-                    else player.setShuffleModeEnabled(true);
+                } else {
+                    Log.d("ABC", "Current data: null");
+                }
+            }
+        });
+    }
 
+    public void configuration_search(){
+        mAuth = FirebaseAuth.getInstance();
+        db= FirebaseFirestore.getInstance();
+        FirebaseUser user = mAuth.getCurrentUser();
 
+        final DocumentReference docRef = db.collection(Utils.COLLECTION_CONFIGURATION).document("search");
+        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w("ABC", "Listen failed.", e);
+                    return;
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+
+                    searchConfig = snapshot.toObject(SearchConfig.class);
+                    client = new Client(searchConfig.getApplication_id(), searchConfig.getSearch_key());
+                    index = client.getIndex("alto_main_search");
 
                 } else {
                     Log.d("ABC", "Current data: null");
@@ -352,8 +382,8 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
     }
 
     public void notification_manager(){
-        playerNotificationManager=PlayerNotificationManager.createWithNotificationChannel(context, PLAYBACK_CHANNEL_ID, PLAYBACK_CHANNEL_NAME,
-                PLAYBACK_CHANNEL_DESCRIPTION, PLAYBACK_NOTIFICATION_ID, new PlayerNotificationManager.MediaDescriptionAdapter() {
+        playerNotificationManager=PlayerNotificationManager.createWithNotificationChannel(context, PLAYBACK_CHANNEL_ID, R.string.player_channel_name,
+                R.string.player_channel_description, PLAYBACK_NOTIFICATION_ID, new PlayerNotificationManager.MediaDescriptionAdapter() {
                     @Override
                     public String getCurrentContentTitle(Player player) {
                         return playlist.get(player.getCurrentWindowIndex()).getTitle();
@@ -646,5 +676,13 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         downloadTracker.removeListener(this);
 
         super.onDestroy();
+    }
+
+    public SearchConfig getSearchConfig() {
+        return searchConfig;
+    }
+
+    public Index getIndex() {
+        return index;
     }
 }

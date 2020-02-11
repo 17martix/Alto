@@ -4,7 +4,7 @@
     android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
+    android:background="#000000"
     android:orientation="vertical">
 
     <LinearLayout
@@ -45,28 +45,28 @@
             android:id="@+id/emailPasswordFields"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_marginBottom="@dimen/activity_vertical_margin"
             android:paddingLeft="16dp"
             android:paddingRight="16dp">
 
             <EditText
                 android:id="@+id/fieldEmail"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:textColor="@color/textColor"
                 android:textColorHint="@color/textColor"
+                android:gravity="center"
                 android:hint="@string/hint_email"
                 android:inputType="textEmailAddress" />
 
             <EditText
                 android:id="@+id/fieldPassword"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:textColor="@color/textColor"
                 android:textColorHint="@color/textColor"
+                android:gravity="center"
                 android:hint="@string/hint_password"
                 android:inputType="textPassword" />
         </LinearLayout>

@@ -12,7 +12,8 @@
         <activity
             android:name=".SplashScreenActivity"
             android:label="@string/app_name"
-            android:theme="@style/LaunchTheme">
+            android:theme="@style/LaunchTheme"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -21,7 +22,14 @@
 
         <activity
             android:name=".AuthActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            >
+        </activity>
+
+        <activity
+            android:name=".SearchActivity"
+            android:label="@string/app_name"
+            >
         </activity>
 
         <activity

@@ -5,7 +5,7 @@
   <color name="textColor">#000000</color>
   <color name="primaryBackgroundColor">#E0F7FA</color>
   <color name="secondaryBackgroundColor">#B2EBF2</color>
-  <color name="transparent_background">#80000000</color>
+  <color name="transparent_background">#80FFFFFF</color>
   <color name="iconColor">#FFFFFF</color>
   <color name="accent_color">#FF5722</color>
 

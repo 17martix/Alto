@@ -69,6 +69,7 @@
     <string name="refresh_rate">Refresh rate</string>
 
     <string name="player_channel_name">Alto</string>
+    <string name="player_channel_description">Alto Player</string>
 
     <string name="addQueue">Add to Queue</string>
     <string name="removeQueue">Remove from Queue</string>
@@ -80,6 +81,7 @@
     <string name="goAlbum">Go to Album</string>
     <string name="editPlaylist">Edit Details</string>
     <string name="deletePlaylist">Delete Playlist</string>
+    <string name="search_hint">Type To Start Searching</string>
 
     <string name="added">Added</string>
     <string name="updated">Updated</string>

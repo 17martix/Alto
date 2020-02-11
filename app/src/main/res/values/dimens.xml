@@ -16,6 +16,7 @@
     <dimen name="normalx_sp">18sp</dimen>
     <dimen name="small">12dp</dimen>
     <dimen name="small_sp">12sp</dimen>
+    <dimen name="smallx_sp">14sp</dimen>
     <dimen name="large">24dp</dimen>
     <dimen name="large_sp">24sp</dimen>
     <dimen name="largex_sp">28sp</dimen>

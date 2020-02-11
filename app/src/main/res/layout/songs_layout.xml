@@ -78,7 +78,7 @@
                         android:text="TextView"
                         android:ellipsize="end"
                         android:maxLines="1"
-                        android:textSize="@dimen/normal_sp"
+                        android:textSize="@dimen/smallx_sp"
                         android:textStyle="bold" />
 
                     <RelativeLayout

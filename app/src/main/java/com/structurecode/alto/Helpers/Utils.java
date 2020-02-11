@@ -52,6 +52,7 @@ public class Utils {
     public static final String GET_REQUEST="GET";
     public static final String DELETE_REQUEST="DELETE";
 
+    public static final String COLLECTION_CONFIGURATION="configuration";
     public static final String COLLECTION_USERS="users";
     public static final String COLLECTION_SETTINGS="settings";
     public static final String COLLECTION_LIBRARY="library";
