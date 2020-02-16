@@ -12,13 +12,11 @@ import android.widget.LinearLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.structurecode.alto.Helpers.StorageHandler;
+import com.amazonaws.mobile.client.AWSMobileClient;
+import com.amazonaws.mobile.client.UserStateDetails;
+import com.amazonaws.mobile.client.Callback;
 
 import java.util.ArrayList;
-
-import static com.structurecode.alto.Helpers.Utils.mAuth;
 
 public class SplashScreenActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST = 1;
@@ -96,21 +94,40 @@ public class SplashScreenActivity extends AppCompatActivity {
     }
 
     private void check_login(){
-        mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null){
-            if (currentUser.isEmailVerified()){
-                new Handler().postDelayed(() -> {
-                    Intent i = new Intent(SplashScreenActivity.this, LibraryActivity.class);
-                    startActivity(i);
-                    finish();
-                }, SPLASH_TIME_OUT);
-            }else {
-                login();
+        AWSMobileClient.getInstance().initialize(getApplicationContext(), new Callback<UserStateDetails>() {
+            @Override
+            public void onResult(UserStateDetails userStateDetails) {
+                switch (userStateDetails.getUserState()){
+                    case SIGNED_IN:
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Intent intent = new Intent(SplashScreenActivity.this,LibraryActivity.class);
+                                startActivity(intent);
+                            }
+                        });
+                        break;
+                    case SIGNED_OUT:
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Intent intent = new Intent(SplashScreenActivity.this,IdentificationActivty.class);
+                                startActivity(intent);
+                            }
+                        });
+                        break;
+                    default:
+                        AWSMobileClient.getInstance().signOut();
+                        Intent intent = new Intent(SplashScreenActivity.this,IdentificationActivty.class);
+                        startActivity(intent);
+                        break;
+                }
             }
 
-        }else{
-            login();
-        }
+            @Override
+            public void onError(Exception e) {
+                Log.e("INIT", e.toString());
+            }
+        });
     }
 }

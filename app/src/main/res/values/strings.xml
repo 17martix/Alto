@@ -105,9 +105,6 @@
     <string name="song_count">Song</string>
     <string name="song_counts">Songs</string>
 
-    <string name="player_source_error">Error setting music source</string>
-    <string name="random_error">An unexpected error occured. Please try again later</string>
-    <string name="authenticate">Authenticating...</string>
     <string name="server_fail">An error occurred trying to access the server. Try again later</string>
 
     <string name="recommendation">Recommendation</string>
@@ -166,4 +163,58 @@
 
     <string name="alto_actions">"actions"</string>
     <string name="download_channel_name">"Downloading"</string>
+
+    <string name="email_free">This account doesn\'t exist</string>
+    <string name="email_recovery">An email has been sent to you</string>
+    <string name="prompt_email">Email</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="go_back">GO BACK</string>
+
+    <string name="login_title">Sign In</string>
+    <string name="registration_title">Sign Up</string>
+    <string name="recovery_title">Recover Password</string>
+
+    <string name="sign">Sign Up</string>
+    <string name="password_recovery">Forgot Password?</string>
+    <string name="name">Name</string>
+    <string name="mail">E-mail</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="c_password">Confirm Password</string>
+    <string name="agree">I Accept The Terms And Conditions</string>
+    <string name="hint">hint error</string>
+    <string name="username">Username</string>
+
+    <string name="reset_successful">Reset Successful. You can now login with this device</string>
+    <string name="condition_check">You need to accept the Terms</string>
+    <string name="email_empty">Please enter your Email Address</string>
+    <string name="email_invalid">Please enter a valid Email Address</string>
+    <string name="email_registered">This Email is already registered</string>
+    <string name="email_check_error">Email Address validity check failed</string>
+    <string name="username_registered">This Username is already registered</string>
+    <string name="username_check_error">Username validity check failed</string>
+    <string name="fname_empty">Please enter your First Name</string>
+    <string name="fname_short">Your First Name is too short</string>
+    <string name="fname_long">Your First Name is too long</string>
+    <string name="uname_empty">Please enter your Username</string>
+    <string name="uname_short">Your Username is too short</string>
+    <string name="uname_long">Your Username is too long</string>
+    <string name="uname_taken">This Username is already taken</string>
+    <string name="lname_empty">Please enter your Last Name</string>
+    <string name="lname_short">Your Last Name is too short</string>
+    <string name="lname_long">Your Last Name is too long</string>
+    <string name="password_short">Your Password must have at least 6 characters</string>
+    <string name="password_match">Passwords don\'t match</string>
+    <string name="password_empty">Please enter your Password</string>
+    <string name="password_long">Your password is too long</string>
+    <string name="password_condition">Your password must contain at least one upper case letter,one lower case letter, and a special character</string>
+    <string name="authenticate">Authenticating...</string>
+    <string name="random_error">An unexpected error occured. Please try again later</string>
+    <string name="login_registration">No Account Yet? Create One</string>
+    <string name="email_sent_registration">A Confirmation Email Has Been Sent To You</string>
+
+    <string name="login_error">Username or Password incorrect</string>
+    <string name="registration_error">Registration failed</string>
+    <string name="registration_success">Registration succeeded</string>
+    <string name="player_source_error">Error setting music source</string>
 </resources>

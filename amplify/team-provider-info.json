@@ -1,0 +1,22 @@
+{
+    "env": {
+        "awscloudformation": {
+            "AuthRoleName": "amplify-alto-env-113246-authRole",
+            "UnauthRoleArn": "arn:aws:iam::184739674743:role/amplify-alto-env-113246-unauthRole",
+            "AuthRoleArn": "arn:aws:iam::184739674743:role/amplify-alto-env-113246-authRole",
+            "Region": "eu-central-1",
+            "DeploymentBucketName": "amplify-alto-env-113246-deployment",
+            "UnauthRoleName": "amplify-alto-env-113246-unauthRole",
+            "StackName": "amplify-alto-env-113246",
+            "StackId": "arn:aws:cloudformation:eu-central-1:184739674743:stack/amplify-alto-env-113246/565a30b0-4d5d-11ea-80b5-0a3ffba78ed8",
+            "AmplifyAppId": "d3b4m1zsatouxu"
+        },
+        "categories": {
+            "auth": {
+                "alto7baecd5f": {
+                    "hostedUIProviderCreds": "[{\"ProviderName\":\"Facebook\",\"client_id\":\"1093091267726143\",\"client_secret\":\"fde59ab10a836f3f7def8a96e20cd700\"},{\"ProviderName\":\"Google\",\"client_id\":\"778746110818-ph2bko2mqfh1a4a18qi2a4c2omnidqp9.apps.googleusercontent.com\",\"client_secret\":\"Ax7kyI3iuX7_dQwCXX6SgpM5\"}]"
+                }
+            }
+        }
+    }
+}

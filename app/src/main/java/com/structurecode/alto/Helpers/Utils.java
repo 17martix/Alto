@@ -1,13 +1,7 @@
 package com.structurecode.alto.Helpers;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
@@ -15,18 +9,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import androidx.annotation.NonNull;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.structurecode.alto.AuthActivity;
-import com.structurecode.alto.Models.Song;
+import com.amazonaws.mobile.client.AWSMobileClient;
+import com.amazonaws.mobile.client.Callback;
+import com.amazonaws.mobile.client.UserStateDetails;
+import com.amplifyframework.api.aws.AWSApiPlugin;
+import com.amplifyframework.core.Amplify;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -38,8 +27,6 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -60,6 +47,8 @@ public class Utils {
     public static final String COLLECTION_PLAYLISTS ="playlists";
     public static final String COLLECTION_SONGS="songs";
 
+    public static final String registration_success_broadcast="com.structurecode.alto.registration.success";
+
     public static final String DEVICE_CHECK="com.structurecode.alto.device.check";
     public static final String ADDED_TO_PLAYLIST="com.structurecode.alto.services.playlist.added";
     public static final String ADDED_SONG_TO_LIBRARY="com.structurecode.alto.services.library.added";
@@ -68,13 +57,29 @@ public class Utils {
 
     public static final String POSITION="position";
 
-    public static FirebaseAuth mAuth=FirebaseAuth.getInstance();
-    public static FirebaseFirestore db= FirebaseFirestore.getInstance();
-    public static FirebaseUser user = mAuth.getCurrentUser();
-
     public static String music_url = "https://storage.googleapis.com/alto-a7134.appspot.com/";
 
     public Utils() {
+    }
+
+    public static void init_aws(Context context){
+        AWSMobileClient.getInstance().initialize(context, new Callback<UserStateDetails>() {
+            @Override
+            public void onResult(UserStateDetails userStateDetails) {
+                try {
+                    Amplify.addPlugin(new AWSApiPlugin());
+                    Amplify.configure(context);
+                    Log.i("ApiQuickstart", "All set and ready to go!");
+                } catch (Exception e) {
+                    Log.e("ApiQuickstart", e.getMessage());
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Log.e("ApiQuickstart", "Initialization error.", e);
+            }
+        });
     }
 
     public static void show_mini_player(boolean show, Context context, CoordinatorLayout coordinatorLayout, LinearLayout mini_player){
