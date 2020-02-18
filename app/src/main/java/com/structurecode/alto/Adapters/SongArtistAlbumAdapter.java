@@ -14,14 +14,17 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -32,6 +35,7 @@ import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Models.Playlist;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
+import com.structurecode.alto.Services.PlayerService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,8 +51,10 @@ import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Services.PlayerService.ADD_TO_QUEUE;
 import static com.structurecode.alto.Services.PlayerService.AUDIO_EXTRA;
 import static com.structurecode.alto.Services.PlayerService.AUDIO_LIST_EXTRA;
+import static com.structurecode.alto.Services.PlayerService.DOWNLOAD;
 import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_SONG;
 import static com.structurecode.alto.Services.PlayerService.PLAY_SONG;
+import static com.structurecode.alto.Services.PlayerService.REMOVE;
 
 /**
  * Created by Guy on 4/17/2017.
@@ -194,16 +200,56 @@ public class SongArtistAlbumAdapter extends RecyclerView.Adapter<SongArtistAlbum
                                 }
                                 break;
                             case R.id.addLibrary:
-                                db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(Utils.COLLECTION_LIBRARY)
-                                        .document(song.getId())
-                                        .delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        Intent intent = new Intent();
-                                        intent.setAction(Utils.REMOVED_SONG_TO_LIBRARY);
-                                        context.sendBroadcast(intent);
-                                    }
-                                });
+                                db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(Utils.COLLECTION_LIBRARY).document(song.getId()).get()
+                                        .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                if (task.isSuccessful()){
+                                                    if (task.getResult().exists()){
+                                                        db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(Utils.COLLECTION_LIBRARY)
+                                                                .document(song.getId())
+                                                                .delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                            @Override
+                                                            public void onSuccess(Void aVoid) {
+                                                                Intent intent = new Intent();
+                                                                intent.setAction(Utils.REMOVED_SONG_TO_LIBRARY);
+                                                                context.sendBroadcast(intent);
+
+                                                                if (song.getUrl()!=null && !song.getUrl().isEmpty()) {
+                                                                    Intent intent2 = new Intent();
+                                                                    intent2.setAction(REMOVE);
+                                                                    intent2.putExtra(AUDIO_EXTRA, song);
+                                                                    context.sendBroadcast(intent2);
+                                                                }
+                                                                Toast.makeText(context,R.string.deleted,Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        });
+                                                    }else {
+                                                        db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(Utils.COLLECTION_LIBRARY)
+                                                                .document(song.getId()).set(song).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                            @Override
+                                                            public void onSuccess(Void aVoid) {
+                                                                Intent intent = new Intent();
+                                                                intent.setAction(Utils.ADDED_SONG_TO_LIBRARY);
+                                                                context.sendBroadcast(intent);
+
+                                                                if (PlayerService.setting.getIs_library_downloaded()== 1){
+                                                                    if (song.getUrl()!=null && !song.getUrl().isEmpty()) {
+                                                                        Intent intent2 = new Intent();
+                                                                        intent2.setAction(DOWNLOAD);
+                                                                        intent2.putExtra(AUDIO_EXTRA, song);
+                                                                        context.sendBroadcast(intent2);
+                                                                    }
+                                                                }
+                                                                Toast.makeText(context,R.string.added,Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        });
+                                                    }
+                                                }else {
+
+                                                }
+                                            }
+                                        });
                                 break;
                             case R.id.addPlaylist:
                                 db= FirebaseFirestore.getInstance();
@@ -250,6 +296,15 @@ public class SongArtistAlbumAdapter extends RecyclerView.Adapter<SongArtistAlbum
                                                                     Intent intent = new Intent();
                                                                     intent.setAction(Utils.ADDED_TO_PLAYLIST);
                                                                     context.sendBroadcast(intent);
+
+                                                                    if (PlayerService.setting.getIs_playlist_downloaded()== 1){
+                                                                        if (song.getUrl()!=null && !song.getUrl().isEmpty()) {
+                                                                            Intent intent2 = new Intent();
+                                                                            intent2.setAction(DOWNLOAD);
+                                                                            intent2.putExtra(AUDIO_EXTRA, song);
+                                                                            context.sendBroadcast(intent2);
+                                                                        }
+                                                                    }
                                                                     dialog.dismiss();
                                                                 }
                                                             })

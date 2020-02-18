@@ -94,6 +94,22 @@ public class SongDownloadTracker {
         }
     }
 
+    public void remove_song(Uri uri) {
+        Download download = downloads.get(uri);
+        if (download != null) {
+            DownloadService.sendRemoveDownload(context, SongDownloadService.class, download.request.id, false);
+
+        }
+    }
+
+    public void download_song(String name, Uri uri) {
+        if (startDownloadDialogHelper != null) {
+            startDownloadDialogHelper.release();
+        }
+        startDownloadDialogHelper =
+                new StartDownloadDialogHelper(getDownloadHelper(uri), name);
+    }
+
     private void loadDownloads() {
         try (DownloadCursor loadedDownloads = downloadIndex.getDownloads()) {
             while (loadedDownloads.moveToNext()) {

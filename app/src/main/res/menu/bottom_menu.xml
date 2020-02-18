@@ -19,7 +19,7 @@
         />
 
     <item
-        android:id="@+id/navigation_discover"
+        android:id="@+id/navigation_explore"
         android:icon="@drawable/explore"
         android:title="@string/nav_item_explore"
         android:enabled="true"

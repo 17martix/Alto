@@ -20,13 +20,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.offline.DownloadService;
 import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Services.PlayerService;
+import com.structurecode.alto.Services.SongDownloadService;
 
 import static com.structurecode.alto.Helpers.Utils.DEVICE_CHECK;
+import static com.structurecode.alto.Helpers.Utils.db;
+import static com.structurecode.alto.Helpers.Utils.mAuth;
+import static com.structurecode.alto.Helpers.Utils.user;
 
 public abstract class BaseActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
 
@@ -48,6 +54,11 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         super.onCreate(savedInstanceState);
         setContentView(getLayoutId());
         context = getContext();
+
+        mAuth=FirebaseAuth.getInstance();
+        db= FirebaseFirestore.getInstance();
+        user = mAuth.getCurrentUser();
+
         navigationView = (BottomNavigationView) findViewById(R.id.navigation);
         navigationView.setOnNavigationItemSelectedListener(this);
 
@@ -57,6 +68,12 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         song_info= findViewById(R.id.SongInfo);
 
         startService();
+
+        try {
+            DownloadService.start(getContext(), SongDownloadService.class);
+        } catch (IllegalStateException e) {
+            DownloadService.startForeground(getContext(), SongDownloadService.class);
+        }
 
         mini_player_music.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,6 +89,7 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
             @Override
             public void onReceive(Context context, Intent intent) {
                 FirebaseAuth mAuth = FirebaseAuth.getInstance();
+                DownloadService.sendRemoveAllDownloads(getContext(),SongDownloadService.class,false);
                 mAuth.signOut();
                 Intent i=new Intent(context, AuthActivity.class);
                 player.stopSelf();
@@ -120,6 +138,9 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
                 break;
             case R.id.navigation_search:
                 startActivity(new Intent(context, SearchActivity.class));
+                break;
+            case R.id.navigation_explore:
+                startActivity(new Intent(context, ExploreActivity.class));
                 break;
         }
         return false;

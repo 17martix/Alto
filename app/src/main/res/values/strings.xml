@@ -73,8 +73,8 @@
 
     <string name="addQueue">Add to Queue</string>
     <string name="removeQueue">Remove from Queue</string>
-    <string name="addLibrary">Add to Library</string>
-    <string name="removeLibrary">Remove from Library</string>
+    <string name="addLibrary">"Add/Remove from Library"</string>
+    <string name="removeLibrary">"Add/Remove from Library"</string>
     <string name="addPlaylist">Add to Playlist</string>
     <string name="removePlaylist">Remove From Playlist</string>
     <string name="goArtist">Go to Artist</string>
@@ -82,6 +82,8 @@
     <string name="editPlaylist">Edit Details</string>
     <string name="deletePlaylist">Delete Playlist</string>
     <string name="search_hint">Type To Start Searching</string>
+    <string name="playlist_empty">Click below to add your first playlist</string>
+    <string name="playlist_empty_add">Add Playlist</string>
 
     <string name="added">Added</string>
     <string name="updated">Updated</string>
@@ -110,7 +112,7 @@
     <string name="authenticate">Authenticating...</string>
     <string name="server_fail">An error occurred trying to access the server. Try again later</string>
 
-    <string name="recommendation">Recommendation</string>
+    <string name="recommendation">Recommended</string>
     <string name="trending">Trending</string>
     <string name="genre_mood">Genres</string>
     <string name="new_releases">New Releases</string>

@@ -54,6 +54,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.Transaction;
 import com.structurecode.alto.Download.SongDownloadManager;
 import com.structurecode.alto.Download.SongDownloadTracker;
@@ -67,8 +68,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Collectors;
 
 import wseemann.media.FFmpegMediaMetadataRetriever;
 
@@ -79,6 +82,8 @@ import static com.structurecode.alto.Helpers.Utils.user;
 public class PlayerService extends Service implements SongDownloadTracker.Listener {
     public static final String ADD_TO_QUEUE="com.structurecode.alto.services.player.add.queue";
     public static final String DOWNLOAD_SONG="com.structurecode.alto.services.player.download.song";
+    public static final String DOWNLOAD="com.structurecode.alto.services.player.download";
+    public static final String REMOVE="com.structurecode.alto.services.player.download.remove";
     public static final String PLAY_SONG="com.structurecode.alto.services.player.play.song";
     public static final String DOWNLOAD_COMPLETED="com.structurecode.alto.services.download.completed";
     public static final String AUDIO_EXTRA="song_extra";
@@ -112,13 +117,15 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
     private FFmpegMediaMetadataRetriever mediaMetadataRetriever;
     private Bitmap albumImage=null;
-    private Setting setting;
+    public static Setting setting;
     private SearchConfig searchConfig;
     private Timer timer;
     private boolean timer_on=false;
 
     private Client client;
     private Index index;
+    private BroadcastReceiver download_receiver;
+    private BroadcastReceiver remove_receiver;
 
     @Override
     public void onCreate() {
@@ -249,25 +256,133 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                 long currentTime = player.getCurrentPosition();
                 long duration = player.getDuration();
                 long benchmark = duration/2;
+                Log.e("HELLO", "FINALLY IN  "+currentTime);
+                Log.e("HELLO", "FINALLY IN  "+duration);
+                Log.e("HELLO", "FINALLY IN  "+benchmark);
                 if (currentTime>benchmark) {
                     db= FirebaseFirestore.getInstance();
                     Log.e("HELLO", "FINALLY IN  "+benchmark);
                     Song song=playlist.get(player.getCurrentWindowIndex());
-                    String path = user.getUid()+song.getId();
-                    DocumentReference doc = db.collection(Utils.COLLECTION_METRICS).document(path);
+                    //String path = user.getUid()+song.getId();
+
+                    DocumentReference doc = db.collection(Utils.COLLECTION_METRICS).document(song.getId());
                     db.runTransaction(new Transaction.Function<Void>() {
                         @Nullable
                         @Override
                         public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
                             DocumentSnapshot snapshot = transaction.get(doc);
-                            String listen_count = snapshot.getString("play");
-                            int play;
-                            if (listen_count==null || listen_count.isEmpty()) play=1;
-                            else play=1+Integer.parseInt(listen_count);
+                            String daily_listen_count = snapshot.getString("daily_play");
+                            String monthly_listen_count = snapshot.getString("monthly_play");
+                            String yearly_listen_count = snapshot.getString("yearly_play");
+                            Map<String, Long> users = new HashMap<>();
+                            if (snapshot.exists()){
+                                users = (Map<String, Long>) snapshot.getData().get("users");
+                            }
+
+                            long daily_play;
+                            long monthly_play;
+                            long yearly_play;
+                            if (daily_listen_count==null || daily_listen_count.isEmpty()) daily_play=(Utils.get_date_daily()*10)+1;
+                            else{
+                                long c = (Integer.parseInt(daily_listen_count))%10;
+                                daily_play = (Utils.get_date_daily()*10)+(c+1);
+                            }
+
+                            if (monthly_listen_count==null || monthly_listen_count.isEmpty()) monthly_play=(Utils.get_date_monthly()*10)+1;
+                            else{
+                                long c = (Integer.parseInt(monthly_listen_count))%10;
+                                monthly_play = (Utils.get_date_monthly()*10)+(c+1);
+                            }
+
+                            if (yearly_listen_count==null || yearly_listen_count.isEmpty()) yearly_play=(Utils.get_date_yearly()*10)+1;
+                            else{
+                                long c = (Integer.parseInt(yearly_listen_count))%10;
+                                yearly_play = (Utils.get_date_yearly()*10)+(c+1);
+                            }
+
+                            if (users==null || users.isEmpty()){
+                                users = new HashMap<>();
+                                long c = 1;
+                                users.put(user.getUid(),c);
+                            }else {
+                                if (users.containsKey(user.getUid())) {
+                                    long c = users.get(user.getUid());
+                                    long new_count = c + 1;
+                                    users.put(user.getUid(), new_count);
+
+                                    if (new_count > 5) {
+                                        ArrayList<String> user_list = new ArrayList<>();
+                                        for (Map.Entry<String, Long> entry : users.entrySet()) {
+                                            if (entry.getValue() > new_count) {
+                                                user_list.add(entry.getKey());
+                                            }
+                                        }
+
+                                        if (user_list.size() > 0) {
+                                            String chosen_user = user_list.get(new Random().nextInt(user_list.size()));
+                                            db.collection(Utils.COLLECTION_METRICS).whereGreaterThan("users." + chosen_user, new_count).get()
+                                                    .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                                        @Override
+                                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                                            if (queryDocumentSnapshots.size() > 1) {
+                                                                DocumentSnapshot snap = null;
+                                                                boolean loop = true;
+                                                                while (loop) {
+                                                                    snap = queryDocumentSnapshots.getDocuments().get(new Random().nextInt(queryDocumentSnapshots.size()));
+                                                                    if (snap.getId() != song.getId()) {
+                                                                        loop = false;
+                                                                    }
+                                                                }
+
+                                                                Map<String, Object> recom_song = new HashMap<>();
+                                                                recom_song.put("id", snap.getId());
+                                                                recom_song.put("artist", snap.getString("artist"));
+                                                                recom_song.put("album", snap.getString("album"));
+                                                                recom_song.put("path", snap.getString("path"));
+                                                                recom_song.put("title", snap.getString("title"));
+                                                                recom_song.put("url", snap.getString("url"));
+                                                                recom_song.put("daily_play", snap.getString("daily_play"));
+                                                                db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(Utils.COLLECTION_RECOMMENDED).document(snap.getId())
+                                                                        .set(recom_song).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                    @Override
+                                                                    public void onSuccess(Void aVoid) {
+                                                                        Log.e("SUCCESS", "New Recommended Song Added");
+                                                                    }
+                                                                }).addOnFailureListener(new OnFailureListener() {
+                                                                    @Override
+                                                                    public void onFailure(@NonNull Exception e) {
+                                                                        Log.e("ERROR","FAILLURE  " +e.getMessage());
+                                                                    }
+                                                                });
+                                                            }
+                                                        }
+                                                    }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    Log.e("NOOOO","FAILLURE  " +e.getMessage());
+                                                }
+                                            });
+                                        }
+                                    }
+
+                                } else {
+                                    long c = 1;
+                                    users.put(user.getUid(), c);
+                                }
+                            }
+
                             Map<String, Object> map = new HashMap<>();
-                            map.put("user", user.getUid());
-                            map.put("song", song.getId());
-                            map.put("play", String.valueOf(play));
+                            map.put("users", users);
+                            map.put("id", song.getId());
+                            map.put("artist", song.getArtist());
+                            map.put("album", song.getAlbum());
+                            map.put("path", song.getPath());
+                            map.put("title", song.getTitle());
+                            map.put("url", song.getUrl());
+                            map.put("lyrics", song.getLyrics());
+                            map.put("daily_play", String.valueOf(daily_play));
+                            map.put("monthly_play", String.valueOf(monthly_play));
+                            map.put("yearly_play", String.valueOf(yearly_play));
                             transaction.set(doc,map);
                             return null;
                         }
@@ -282,6 +397,43 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                             Log.e("WHHAAAT","FAILLURE  " +e.getMessage());
                         }
                     });
+
+
+                    /*DocumentReference doc = db.collection(Utils.COLLECTION_METRICS).document(path);
+                    db.runTransaction(new Transaction.Function<Void>() {
+                        @Nullable
+                        @Override
+                        public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
+                            DocumentSnapshot snapshot = transaction.get(doc);
+                            String listen_count = snapshot.getString("play");
+                            int play;
+                            if (listen_count==null || listen_count.isEmpty()) play=1;
+                            else play=1+Integer.parseInt(listen_count);
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("user_id", user.getUid());
+                            map.put("song_id", song.getId());
+                            map.put("song_artist", song.getArtist());
+                            map.put("song_album", song.getAlbum());
+                            map.put("song_playlist_id", song.getPlaylist_id());
+                            map.put("song_path", song.getPath());
+                            map.put("song_title", song.getTitle());
+                            map.put("song_url", song.getUrl());
+                            map.put("date", System.currentTimeMillis());
+                            map.put("play", String.valueOf(play));
+                            transaction.set(doc,map);
+                            return null;
+                        }
+                    }).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Log.e("OOOOOOF","SUCESSSSSS");
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e("WHHAAAT","FAILLURE  " +e.getMessage());
+                        }
+                    });*/
                     timer_on=false;
                     cancel();
                 }
@@ -498,6 +650,28 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
             }
         };
 
+        IntentFilter download_filter = new IntentFilter();
+        download_filter.addAction(DOWNLOAD);
+        download_receiver =new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Song song=(Song)intent.getParcelableExtra(AUDIO_EXTRA);
+                downloadTracker.download_song(song.getTitle(),Uri.parse(song.getUrl()));
+
+            }
+        };
+
+        IntentFilter remove_filter = new IntentFilter();
+        remove_filter.addAction(REMOVE);
+        remove_receiver =new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Song song=(Song)intent.getParcelableExtra(AUDIO_EXTRA);
+                downloadTracker.remove_song(Uri.parse(song.getUrl()));
+
+            }
+        };
+
         IntentFilter play_song_filter = new IntentFilter();
         play_song_filter.addAction(PLAY_SONG);
         play_song_receiver =new BroadcastReceiver() {
@@ -513,6 +687,8 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
         registerReceiver(play_song_receiver,play_song_filter);
         registerReceiver(download_song_receiver,download_song_filter);
+        registerReceiver(download_receiver,download_filter);
+        registerReceiver(remove_receiver,remove_filter);
         registerReceiver(add_queue_receiver,add_queue_filter);
     }
 

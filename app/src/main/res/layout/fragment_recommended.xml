@@ -6,7 +6,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:id="@+id/trending_list">
+        android:id="@+id/recommended_list">
 
     </androidx.recyclerview.widget.RecyclerView>
 

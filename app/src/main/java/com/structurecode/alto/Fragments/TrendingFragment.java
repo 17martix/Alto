@@ -9,29 +9,33 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.structurecode.alto.Adapters.SongAdapter;
 import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 
-import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Helpers.Utils.db;
+import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_COMPLETED;
 
-public class SongFragment extends Fragment {
+public class TrendingFragment extends Fragment {
 
     private SongAdapter adapter;
     private RecyclerView recyclerView;
 
     private BroadcastReceiver download_completed_broadcast;
 
-    public SongFragment() {
+    public TrendingFragment() {
         // Required empty public constructor
     }
 
@@ -43,18 +47,18 @@ public class SongFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final View view=inflater.inflate(R.layout.fragment_library_songs, container, false);
+        final View view=inflater.inflate(R.layout.fragment_trending, container, false);
 
-        recyclerView = (RecyclerView) view.findViewById(R.id.SongList);
+        recyclerView = (RecyclerView) view.findViewById(R.id.trending_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                .collection(Utils.COLLECTION_LIBRARY).orderBy("title",Query.Direction.ASCENDING);
+        Query query = db.collection(Utils.COLLECTION_METRICS).orderBy("daily_play",Query.Direction.DESCENDING)
+                .limit(50);
 
         FirestoreRecyclerOptions<Song> options = new FirestoreRecyclerOptions.Builder<Song>()
                 .setQuery(query, Song.class)
                 .build();
-        adapter = new SongAdapter(options,getContext(),true,true);
+        adapter = new SongAdapter(options,getContext(),true,false);
 
         recyclerView.setAdapter(adapter);
 
@@ -95,13 +99,5 @@ public class SongFragment extends Fragment {
             download_completed_broadcast = null;
         }
         super.onDestroy();
-    }
-
-    public RecyclerView getRecyclerView() {
-        return recyclerView;
-    }
-
-    public SongAdapter getAdapter() {
-        return adapter;
     }
 }

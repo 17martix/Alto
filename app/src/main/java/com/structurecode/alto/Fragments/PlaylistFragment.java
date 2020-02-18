@@ -9,6 +9,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,6 +21,7 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.firestore.Query;
 import com.structurecode.alto.Adapters.PlaylistAdapter;
 import com.structurecode.alto.Helpers.Utils;
+import com.structurecode.alto.LibraryActivity;
 import com.structurecode.alto.Models.Playlist;
 import com.structurecode.alto.R;
 
@@ -117,6 +121,11 @@ public class PlaylistFragment extends Fragment {
             download_completed_broadcast = null;
         }
         super.onDestroy();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 
     @Override

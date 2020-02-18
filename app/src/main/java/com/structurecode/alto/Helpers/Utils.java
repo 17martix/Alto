@@ -1,13 +1,9 @@
 package com.structurecode.alto.Helpers;
 
-import android.app.Activity;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.bluetooth.BluetoothAdapter;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
@@ -15,18 +11,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import androidx.annotation.NonNull;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.structurecode.alto.AuthActivity;
-import com.structurecode.alto.Models.Song;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -38,8 +27,10 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Random;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Scanner;
 
 /**
@@ -59,6 +50,8 @@ public class Utils {
     public static final String COLLECTION_METRICS ="metrics";
     public static final String COLLECTION_PLAYLISTS ="playlists";
     public static final String COLLECTION_SONGS="songs";
+    public static final String COLLECTION_RECOMMENDED="recommended";
+    public static final String COLLECTION_TRENDING="trending";
 
     public static final String DEVICE_CHECK="com.structurecode.alto.device.check";
     public static final String ADDED_TO_PLAYLIST="com.structurecode.alto.services.playlist.added";
@@ -72,7 +65,10 @@ public class Utils {
     public static FirebaseFirestore db= FirebaseFirestore.getInstance();
     public static FirebaseUser user = mAuth.getCurrentUser();
 
-    public static String music_url = "https://storage.googleapis.com/alto-a7134.appspot.com/";
+    private static final DateFormat date_format = new SimpleDateFormat("yyyy-MM-dd");
+    private static final DateFormat date_format_daily = new SimpleDateFormat("yyyyMMdd");
+    private static final DateFormat date_format_yearly = new SimpleDateFormat("yyyy");
+    private static final DateFormat date_format_monthly = new SimpleDateFormat("yyyyMM");
 
     public Utils() {
     }
@@ -116,6 +112,92 @@ public class Utils {
             p.setMargins(l, t, r, b);
             v.requestLayout();
         }
+    }
+
+    public static String get_date(){
+        Date date = new Date();
+        String result=date_format.format(date);
+        return result;
+    }
+
+    public static int get_date_daily(){
+        Date date = new Date();
+        String result=date_format_daily.format(date);
+        return Integer.parseInt(result);
+    }
+
+    public static int get_date_yearly(){
+        Date date = new Date();
+        String result=date_format_yearly.format(date);
+        return Integer.parseInt(result);
+    }
+
+    public static int get_date_monthly(){
+        Date date = new Date();
+        String result=date_format_monthly.format(date);
+        return Integer.parseInt(result);
+    }
+
+    public static Date get_date(String datetoSaved){
+
+        try {
+            Date date = date_format.parse(datetoSaved);
+            return date ;
+        } catch (ParseException e){
+            return null ;
+        }
+
+    }
+
+    public static boolean rotateFab(final View v, boolean rotate) {
+        v.animate().setDuration(200)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                    }
+                })
+                .rotation(rotate ? 135f : 0f);
+        return rotate;
+    }
+
+    public static void showIn(final View v) {
+        v.setVisibility(View.VISIBLE);
+        v.setAlpha(0f);
+        v.setTranslationY(v.getHeight());
+        v.animate()
+                .setDuration(200)
+                .translationY(0)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                    }
+                })
+                .alpha(1f)
+                .start();
+    }
+    public static void showOut(final View v) {
+        v.setVisibility(View.VISIBLE);
+        v.setAlpha(1f);
+        v.setTranslationY(0);
+        v.animate()
+                .setDuration(200)
+                .translationY(v.getHeight())
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        v.setVisibility(View.GONE);
+                        super.onAnimationEnd(animation);
+                    }
+                }).alpha(0f)
+                .start();
+    }
+
+    public static void init(final View v) {
+        v.setVisibility(View.GONE);
+        v.setTranslationY(v.getHeight());
+        v.setAlpha(0f);
     }
 
     public static String milliSecondsToTimer(long milliseconds){

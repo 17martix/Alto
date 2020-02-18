@@ -1,37 +1,29 @@
 package com.structurecode.alto;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
-import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -41,7 +33,6 @@ import com.structurecode.alto.Fragments.PlaylistFragment;
 import com.structurecode.alto.Fragments.SongFragment;
 import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Models.Playlist;
-import com.structurecode.alto.Services.PlayerService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,15 +46,11 @@ public class LibraryActivity extends BaseActivity  {
 
     private TabLayout tabLayout;
     private ViewPager viewPager;
-
-    /*private PlayerControlView playerControlView;
-    public PlayerService player;
-    private boolean serviceBound=false;
-    private Intent serviceIntent=null;
-
-    private LinearLayout mini_player_music;
-    private CoordinatorLayout coordinatorLayout;
-    private TextView song_info;*/
+    private FloatingActionButton floating_actions;
+    private FloatingActionButton shuffle_action;
+    private FloatingActionButton add_action;
+    private FloatingActionButton setting_action;
+    private boolean is_rotated = false;
 
     private final List<Fragment> mFragmentList = new ArrayList<>();
     private final List<String> mFragmentTitleList = new ArrayList<>();
@@ -71,37 +58,70 @@ public class LibraryActivity extends BaseActivity  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_library);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_music);
-        setSupportActionBar(toolbar);
 
         viewPager = findViewById(R.id.pager_music);
-        /*mini_player_music = findViewById(R.id.mini_player_music);
-        coordinatorLayout = findViewById(R.id.coord_music);*/
-        /*navigationView = (BottomNavigationView) findViewById(R.id.navigation);
-        navigationView.setOnNavigationItemSelectedListener(this);
-        update_navigation_bar();*/
         setupViewPager(viewPager);
         tabLayout = findViewById(R.id.tabs_music);
         tabLayout.setupWithViewPager(viewPager);
-//        song_info= findViewById(R.id.SongInfo);
+        floating_actions = findViewById(R.id.floating_actions);
+        shuffle_action = findViewById(R.id.shuffle_action);
+        add_action = findViewById(R.id.add_action);
+        setting_action = findViewById(R.id.setting_action);
 
-        mAuth=FirebaseAuth.getInstance();
-        db= FirebaseFirestore.getInstance();
-        user = mAuth.getCurrentUser();
+        Utils.init(shuffle_action);
+        Utils.init(add_action);
+        Utils.init(setting_action);
 
-//        playerControlView=findViewById(R.id.audio_view);
-
-//        startService();
-
-        /*mini_player_music.setOnClickListener(new View.OnClickListener() {
+        floating_actions.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                Intent intent=new Intent(getApplicationContext(), PlayerActivity.class);
+            public void onClick(View v) {
+                is_rotated = Utils.rotateFab(v,!is_rotated);
+                if(is_rotated){
+                    Utils.showIn(setting_action);
+                    Utils.showIn(add_action);
+                    Utils.showIn(shuffle_action);
+                }else{
+                    Utils.showOut(setting_action);
+                    Utils.showOut(add_action);
+                    Utils.showOut(shuffle_action);
+                }
+            }
+        });
+
+        setting_action.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                floating_actions.performClick();
+                Intent intent=new Intent(LibraryActivity.this,SettingActivity.class);
                 startActivity(intent);
             }
-        });*/
+        });
+
+        add_action.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                floating_actions.performClick();
+                display_new_playlist_dialog(R.string.new_playlist,R.string.create,"",false,0);
+            }
+        });
+
+        shuffle_action.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                floating_actions.performClick();
+                SongFragment fragment = (SongFragment) mFragmentList.get(1);
+                if (fragment.getAdapter().getItemCount() > 0) {
+                    int total_Count = fragment.getRecyclerView().getAdapter().getItemCount();
+                    int random = new Random().nextInt(total_Count);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            fragment.getRecyclerView().findViewHolderForAdapterPosition(random).itemView.performClick();
+                        }
+                    },1);
+                }
+            }
+        });
 
     }
 
@@ -115,8 +135,6 @@ public class LibraryActivity extends BaseActivity  {
     }
 
     public class ViewPagerAdapter extends FragmentPagerAdapter {
-        /*private final List<Fragment> mFragmentList = new ArrayList<>();
-        private final List<String> mFragmentTitleList = new ArrayList<>();*/
 
         public ViewPagerAdapter(FragmentManager manager) {
             super(manager,BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
@@ -145,12 +163,6 @@ public class LibraryActivity extends BaseActivity  {
 
     @Override
     protected void onDestroy() {
-        /*if (serviceBound) {
-            unbindService(serviceConnection);
-            //service is active
-            //player.stopSelf();
-        }*/
-
         super.onDestroy();
     }
 
@@ -174,53 +186,7 @@ public class LibraryActivity extends BaseActivity  {
         super.onBackPressed();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_library, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        switch (id){
-            case R.id.action_settings:
-                Intent intent=new Intent(LibraryActivity.this,SettingActivity.class);
-                startActivity(intent);
-                break;
-            case R.id.action_add_playlist:
-                display_new_playlist_dialog(R.string.new_playlist,R.string.create,"",false,0);
-                break;
-            case R.id.action_shuffle:
-                SongFragment fragment = (SongFragment) mFragmentList.get(1);
-                if (fragment.getAdapter().getItemCount() > 0) {
-                    int total_Count = fragment.getRecyclerView().getAdapter().getItemCount();
-                    int random = new Random().nextInt(total_Count);
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            fragment.getRecyclerView().findViewHolderForAdapterPosition(random).itemView.performClick();
-                        }
-                    },1);
-                }
-                break;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    /*public void update_navigation_bar(){
-        int actionId = R.id.navigation_library;
-        MenuItem item = navigationView.getMenu().findItem(actionId);
-        item.setChecked(true);
-    }*/
-
-    private void display_new_playlist_dialog(@StringRes int title, @StringRes int positiveText, final String playlistTitle,
+    public void display_new_playlist_dialog(@StringRes int title, @StringRes int positiveText, final String playlistTitle,
                                              boolean is_private_retrieved, final int playlistId){
 
         View view = getLayoutInflater().inflate(R.layout.dialog_playlist, null);
@@ -267,56 +233,4 @@ public class LibraryActivity extends BaseActivity  {
                 }).create();
         alertDialog.show();
     }
-
-    /*public void startService(){
-        if(serviceIntent==null){
-            serviceIntent = new Intent(this, PlayerService.class);
-            bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-            startService(serviceIntent);
-        }
-    }*/
-
-    //Binding this Client to the AudioPlayer Service
-    /*private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            PlayerService.LocalBinder binder = (PlayerService.LocalBinder) service;
-            player = binder.getService();
-            serviceBound = true;
-
-            playerControlView.setPlayer(player.player);
-            update_player();
-            player.player.addListener(new Player.EventListener() {
-                @Override
-                public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-                    if (playbackState == PlaybackStateCompat.STATE_PLAYING){
-                        song_info.setText(player.GetPlayingInfo());
-                        Utils.show_mini_player(true,LibraryActivity.this,coordinatorLayout,mini_player_music);
-                    }
-
-                    if (playbackState == PlaybackStateCompat.STATE_STOPPED){
-                        Utils.show_mini_player(false,LibraryActivity.this,coordinatorLayout,mini_player_music);
-                    }
-                }
-
-                @Override
-                public void onPositionDiscontinuity(int reason) {
-                    song_info.setText(player.GetPlayingInfo());
-                }
-            });
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-        }
-    };*/
-
-    /*public  void update_player(){
-        if (player.player.getPlaybackState()!=Player.STATE_IDLE){
-            song_info.setText(player.GetPlayingInfo());
-            Utils.show_mini_player(true,LibraryActivity.this,coordinatorLayout,mini_player_music);
-        }
-    }*/
 }

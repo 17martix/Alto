@@ -1,8 +1,10 @@
 package com.structurecode.alto;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -15,6 +17,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,14 +25,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.algolia.search.saas.AlgoliaException;
 import com.algolia.search.saas.CompletionHandler;
-import com.algolia.search.saas.Query;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.ui.PlayerControlView;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.structurecode.alto.Adapters.OnlineSongAdapter;
 import com.structurecode.alto.Adapters.SongArtistAlbumAdapter;
 import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Models.Song;
@@ -42,20 +49,15 @@ import java.util.ArrayList;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.mAuth;
 import static com.structurecode.alto.Helpers.Utils.user;
+import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_COMPLETED;
 
 public class SearchActivity extends BaseActivity {
-    private PlayerControlView playerControlView;
-    public PlayerService player;
-    private boolean serviceBound=false;
-    private Intent serviceIntent=null;
 
     private EditText search_query;
     private RecyclerView recyclerView;
-    private SongArtistAlbumAdapter adapter;
+    private OnlineSongAdapter adapter;
     private ArrayList<Song> list;
-    private CoordinatorLayout coordinatorLayout;
-    private LinearLayout mini_player_music;
-    private TextView song_info;
+    private BroadcastReceiver download_completed_broadcast;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,37 +65,53 @@ public class SearchActivity extends BaseActivity {
 
         search_query = findViewById(R.id.search_query);
         recyclerView = findViewById(R.id.search_result);
-        mini_player_music = findViewById(R.id.mini_player_music);
-        coordinatorLayout = findViewById(R.id.coord_music);
-        playerControlView=findViewById(R.id.audio_view);
-        song_info= findViewById(R.id.SongInfo);
 
         mAuth= FirebaseAuth.getInstance();
         db= FirebaseFirestore.getInstance();
         user = mAuth.getCurrentUser();
 
         startService();
+        initialize_broadcasts();
 
-        db.collection(Utils.COLLECTION_SONGS).limit(50).orderBy("title", com.google.firebase.firestore.Query.Direction.ASCENDING)
+        /*db.collection(Utils.COLLECTION_METRICS).limit(50).orderBy("monthly_play", Query.Direction.DESCENDING)
                 .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 list = new ArrayList<>();
                 for (DocumentSnapshot snapshot : queryDocumentSnapshots) {
-                    list.add(snapshot.toObject(Song.class));
+                    list.add(new Song(snapshot.getId(),snapshot.getString("title"),
+                            snapshot.getString("artist"),snapshot.getString("album"),
+                            snapshot.getString("path"),snapshot.getString("url"),snapshot.getString("lyrics")));
                 }
 
-                adapter = new SongArtistAlbumAdapter(list,SearchActivity.this,true);
+                adapter = new OnlineSongAdapter(list,SearchActivity.this,true);
                 recyclerView.setLayoutManager(new LinearLayoutManager(SearchActivity.this));
                 recyclerView.setAdapter(adapter);
             }
-        });
+        });*/
 
-        mini_player_music.setOnClickListener(new View.OnClickListener() {
+        db.collection(Utils.COLLECTION_METRICS).limit(50).orderBy("monthly_play", Query.Direction.DESCENDING)
+                .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
-            public void onClick(View view) {
-                Intent intent=new Intent(SearchActivity.this, PlayerActivity.class);
-                startActivity(intent);
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                list = new ArrayList<>();
+                if (task.isSuccessful()){
+                    if (task.getResult()== null || task.getResult().isEmpty()){
+                        placeholder();
+                    }else {
+                        for (QueryDocumentSnapshot snapshot : task.getResult()) {
+                            list.add(new Song(snapshot.getId(),snapshot.getString("title"),
+                                    snapshot.getString("artist"),snapshot.getString("album"),
+                                    snapshot.getString("path"),snapshot.getString("url"),snapshot.getString("lyrics")));
+                        }
+
+                        adapter = new OnlineSongAdapter(list,SearchActivity.this,true);
+                        recyclerView.setLayoutManager(new LinearLayoutManager(SearchActivity.this));
+                        recyclerView.setAdapter(adapter);
+                    }
+                }else {
+                    placeholder();
+                }
             }
         });
 
@@ -110,25 +128,55 @@ public class SearchActivity extends BaseActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                Query query = new Query(s.toString())
+                /*Query query = new Query(s.toString())
                         .setHitsPerPage(50);
                 player.getIndex().searchAsync(query, new CompletionHandler() {
                     @Override
                     public void requestCompleted(@Nullable JSONObject jsonObject, @Nullable AlgoliaException e) {
                         Log.e("HELLO", jsonObject.toString());
                     }
-                });
+                });*/
             }
         });
 
     }
 
+    public void placeholder(){
+        db.collection(Utils.COLLECTION_SONGS).limit(50).orderBy("year", Query.Direction.DESCENDING)
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for (DocumentSnapshot snapshot : queryDocumentSnapshots) {
+                    list.add(new Song(snapshot.getId(),snapshot.getString("title"),
+                            snapshot.getString("artist"),snapshot.getString("album"),
+                            snapshot.getString("path"),snapshot.getString("url")));
+                }
+
+                adapter = new OnlineSongAdapter(list,SearchActivity.this,true);
+                recyclerView.setLayoutManager(new LinearLayoutManager(SearchActivity.this));
+                recyclerView.setAdapter(adapter);
+            }
+        });
+    }
+
+    public void initialize_broadcasts(){
+
+        IntentFilter download_completed_filter = new IntentFilter();
+        download_completed_filter.addAction(DOWNLOAD_COMPLETED);
+        download_completed_broadcast =new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                adapter.notifyDataSetChanged();
+            }
+        };
+        getContext().registerReceiver(download_completed_broadcast,download_completed_filter);
+    }
+
     @Override
     protected void onDestroy() {
-        if (serviceBound) {
-            unbindService(serviceConnection);
-            //service is active
-            //player.stopSelf();
+        if (download_completed_broadcast != null) {
+            getContext().unregisterReceiver(download_completed_broadcast);
+            download_completed_broadcast = null;
         }
 
         super.onDestroy();
@@ -152,57 +200,5 @@ public class SearchActivity extends BaseActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-    }
-
-    public void startService(){
-        if(serviceIntent==null){
-            serviceIntent = new Intent(this, PlayerService.class);
-            bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-            startService(serviceIntent);
-        }
-    }
-
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            PlayerService.LocalBinder binder = (PlayerService.LocalBinder) service;
-            player = binder.getService();
-            serviceBound = true;
-
-            playerControlView.setPlayer(player.player);
-
-            update_player();
-            player.player.addListener(new Player.EventListener() {
-                @Override
-                public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-                    if (playbackState == PlaybackStateCompat.STATE_PLAYING){
-                        song_info.setText(player.GetPlayingInfo());
-                        Utils.show_mini_player(true,SearchActivity.this,coordinatorLayout,mini_player_music);
-                    }
-
-                    if (playbackState == PlaybackStateCompat.STATE_STOPPED){
-                        Utils.show_mini_player(false,SearchActivity.this,coordinatorLayout,mini_player_music);
-                    }
-                }
-
-                @Override
-                public void onPositionDiscontinuity(int reason) {
-                    song_info.setText(player.GetPlayingInfo());
-                }
-            });
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-        }
-    };
-
-    public  void update_player(){
-        if (player.player.getPlaybackState()!=Player.STATE_IDLE){
-            song_info.setText(player.GetPlayingInfo());
-            Utils.show_mini_player(true,SearchActivity.this,coordinatorLayout,mini_player_music);
-        }
     }
 }

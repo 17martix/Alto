@@ -12,9 +12,31 @@ public class Song implements Parcelable {
     private String album;
     private String path;
     private String url;
+    private String lyrics;
     private String playlist_id;
 
     public Song() {
+    }
+
+    public Song(String id, String title, String artist, String album, String path, String url, String lyrics, String playlist_id) {
+        this.id = id;
+        this.title = title;
+        this.artist = artist;
+        this.album = album;
+        this.path = path;
+        this.url = url;
+        this.lyrics = lyrics;
+        this.playlist_id = playlist_id;
+    }
+
+    public Song(String id, String title, String artist, String album, String path, String url, String lyrics) {
+        this.id = id;
+        this.title = title;
+        this.artist = artist;
+        this.album = album;
+        this.path = path;
+        this.url = url;
+        this.lyrics = lyrics;
     }
 
     public Song(String id, String title, String artist, String album, String path, String url) {
@@ -26,16 +48,6 @@ public class Song implements Parcelable {
         this.url = url;
     }
 
-    public Song(String id, String title, String artist, String album, String path, String url, String playlist_id) {
-        this.id = id;
-        this.title = title;
-        this.artist = artist;
-        this.album = album;
-        this.path = path;
-        this.url = url;
-        this.playlist_id = playlist_id;
-    }
-
     protected Song(Parcel in) {
         id = in.readString();
         title = in.readString();
@@ -43,6 +55,7 @@ public class Song implements Parcelable {
         album = in.readString();
         path = in.readString();
         url = in.readString();
+        lyrics = in.readString();
         playlist_id = in.readString();
     }
 
@@ -106,6 +119,14 @@ public class Song implements Parcelable {
         this.url = url;
     }
 
+    public String getLyrics() {
+        return lyrics;
+    }
+
+    public void setLyrics(String lyrics) {
+        this.lyrics = lyrics;
+    }
+
     public String getPlaylist_id() {
         return playlist_id;
     }
@@ -127,6 +148,7 @@ public class Song implements Parcelable {
         dest.writeString(album);
         dest.writeString(path);
         dest.writeString(url);
+        dest.writeString(lyrics);
         dest.writeString(playlist_id);
     }
 }

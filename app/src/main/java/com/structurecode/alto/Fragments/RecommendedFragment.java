@@ -20,18 +20,18 @@ import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 
-import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Helpers.Utils.db;
+import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_COMPLETED;
 
-public class SongFragment extends Fragment {
+public class RecommendedFragment extends Fragment {
 
     private SongAdapter adapter;
     private RecyclerView recyclerView;
 
     private BroadcastReceiver download_completed_broadcast;
 
-    public SongFragment() {
+    public RecommendedFragment() {
         // Required empty public constructor
     }
 
@@ -43,18 +43,19 @@ public class SongFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final View view=inflater.inflate(R.layout.fragment_library_songs, container, false);
+        final View view=inflater.inflate(R.layout.fragment_recommended, container, false);
 
-        recyclerView = (RecyclerView) view.findViewById(R.id.SongList);
+        recyclerView = (RecyclerView) view.findViewById(R.id.recommended_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                .collection(Utils.COLLECTION_LIBRARY).orderBy("title",Query.Direction.ASCENDING);
+                .collection(Utils.COLLECTION_RECOMMENDED)
+                .orderBy("daily_play",Query.Direction.DESCENDING);
 
         FirestoreRecyclerOptions<Song> options = new FirestoreRecyclerOptions.Builder<Song>()
                 .setQuery(query, Song.class)
                 .build();
-        adapter = new SongAdapter(options,getContext(),true,true);
+        adapter = new SongAdapter(options,getContext(),true,false);
 
         recyclerView.setAdapter(adapter);
 
@@ -95,13 +96,5 @@ public class SongFragment extends Fragment {
             download_completed_broadcast = null;
         }
         super.onDestroy();
-    }
-
-    public RecyclerView getRecyclerView() {
-        return recyclerView;
-    }
-
-    public SongAdapter getAdapter() {
-        return adapter;
     }
 }

@@ -10,37 +10,35 @@
         android:layout_marginBottom="50dp"
         android:paddingBottom="0dp"
         >
-
-        <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools"
             android:layout_width="match_parent"
+            android:id="@+id/coord_music"
             android:layout_height="match_parent"
-            android:id="@+id/coord_discover"
-            android:fitsSystemWindows="true"
-            tools:context="com.skilledhacker.developer.musiqx.DiscoverActivity">
+            android:fitsSystemWindows="true">
 
             <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <include
-                    android:id="@+id/toolbar_discover"
-                    layout="@layout/toolbar"/>
-
                 <com.google.android.material.tabs.TabLayout
-                    android:id="@+id/tabs_discover"
+                    android:id="@+id/tabs_music"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/primaryColor"
                     app:tabTextColor="@color/textColor"
+                    app:tabSelectedTextColor="@color/white"
+                    app:tabIndicatorColor="@color/accent_color"
                     app:tabGravity="fill"
-                    app:tabMode="fixed"  />
+                    app:tabMode="fixed" />
 
             </com.google.android.material.appbar.AppBarLayout>
 
+
             <androidx.viewpager.widget.ViewPager
-                android:id="@+id/pager_discover"
+                android:id="@+id/pager_music"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/primaryBackgroundColor"
@@ -52,7 +50,7 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_gravity="center|bottom"
-            app:layout_constraintTop_toBottomOf="@+id/coord_discover"
+            app:layout_constraintTop_toBottomOf="@+id/coord_music"
             android:visibility="gone"
             android:id="@+id/mini_player_music"
             layout="@layout/mini_player"/>

@@ -40,6 +40,7 @@ import static com.structurecode.alto.Services.PlayerService.AUDIO_EXTRA;
 import static com.structurecode.alto.Services.PlayerService.AUDIO_LIST_EXTRA;
 import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_SONG;
 import static com.structurecode.alto.Services.PlayerService.PLAY_SONG;
+import static com.structurecode.alto.Services.PlayerService.REMOVE;
 
 /**
  * Created by Guy on 4/17/2017.
@@ -199,6 +200,13 @@ public class SongPlaylistAdapter extends RecyclerView.Adapter<SongPlaylistAdapte
                                                 intent.setAction(Utils.REMOVED_TO_PLAYLIST);
                                                 intent.putExtra(Utils.POSITION, clickedPosition);
                                                 context.sendBroadcast(intent);
+
+                                                if (song.getUrl()!=null && !song.getUrl().isEmpty()) {
+                                                    Intent intent2 = new Intent();
+                                                    intent2.setAction(REMOVE);
+                                                    intent2.putExtra(AUDIO_EXTRA, song);
+                                                    context.sendBroadcast(intent2);
+                                                }
                                                 Log.d("ABC", "DocumentSnapshot successfully written!");
                                             }
                                         })
