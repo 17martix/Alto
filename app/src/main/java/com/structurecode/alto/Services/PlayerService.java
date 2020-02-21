@@ -76,6 +76,7 @@ import java.util.stream.Collectors;
 import wseemann.media.FFmpegMediaMetadataRetriever;
 
 import static com.structurecode.alto.Helpers.Utils.db;
+import static com.structurecode.alto.Helpers.Utils.get_date_daily;
 import static com.structurecode.alto.Helpers.Utils.mAuth;
 import static com.structurecode.alto.Helpers.Utils.user;
 
@@ -126,6 +127,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
     private Index index;
     private BroadcastReceiver download_receiver;
     private BroadcastReceiver remove_receiver;
+    private Song playing_song;
 
     @Override
     public void onCreate() {
@@ -138,7 +140,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         mAuth=FirebaseAuth.getInstance();
         db= FirebaseFirestore.getInstance();
         user = mAuth.getCurrentUser();
-        setting = new Setting(1,1,0,0);
+        setting = new Setting(1,1,0,1);
         searchConfig = new SearchConfig();
 
         dataSourceFactory = SongDownloadManager.buildDataSourceFactory(context);
@@ -215,6 +217,9 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                 if (snapshot != null && snapshot.exists()) {
 
                     setting = snapshot.toObject(Setting.class);
+                    player.setRepeatMode(setting.getRepeat_mode());
+                    if (setting.getShuffle_mode()==0) player.setShuffleModeEnabled(false);
+                    else player.setShuffleModeEnabled(true);
                 } else {
                     Log.d("ABC", "Current data: null");
                 }
@@ -279,25 +284,44 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                                 users = (Map<String, Long>) snapshot.getData().get("users");
                             }
 
-                            long daily_play;
-                            long monthly_play;
-                            long yearly_play;
-                            if (daily_listen_count==null || daily_listen_count.isEmpty()) daily_play=(Utils.get_date_daily()*10)+1;
+                            String daily_play;
+                            String monthly_play;
+                            String yearly_play;
+                            if (daily_listen_count==null || daily_listen_count.isEmpty()) daily_play=get_date_daily()+1;
                             else{
-                                long c = (Integer.parseInt(daily_listen_count))%10;
-                                daily_play = (Utils.get_date_daily()*10)+(c+1);
+                                String date = daily_listen_count.substring(0,8);
+                                String count = daily_listen_count.substring(8);
+                                Log.e("AAAA", get_date_daily()+"-"+date);
+                                if (date.equals(get_date_daily())){
+                                    long c = (Integer.parseInt(count))+1;
+                                    daily_play = get_date_daily()+c;
+                                }else {
+                                    daily_play = get_date_daily()+1;
+                                }
                             }
 
-                            if (monthly_listen_count==null || monthly_listen_count.isEmpty()) monthly_play=(Utils.get_date_monthly()*10)+1;
+                            if (monthly_listen_count==null || monthly_listen_count.isEmpty()) monthly_play=Utils.get_date_monthly()+1;
                             else{
-                                long c = (Integer.parseInt(monthly_listen_count))%10;
-                                monthly_play = (Utils.get_date_monthly()*10)+(c+1);
+                                String date = monthly_listen_count.substring(0,6);
+                                String count = monthly_listen_count.substring(6);
+                                if (date.equals(Utils.get_date_monthly())){
+                                    long c = (Integer.parseInt(count))+1;
+                                    monthly_play = Utils.get_date_monthly()+c;
+                                }else {
+                                    monthly_play = Utils.get_date_monthly()+1;
+                                }
                             }
 
-                            if (yearly_listen_count==null || yearly_listen_count.isEmpty()) yearly_play=(Utils.get_date_yearly()*10)+1;
+                            if (yearly_listen_count==null || yearly_listen_count.isEmpty()) yearly_play=Utils.get_date_yearly()+1;
                             else{
-                                long c = (Integer.parseInt(yearly_listen_count))%10;
-                                yearly_play = (Utils.get_date_yearly()*10)+(c+1);
+                                String date = yearly_listen_count.substring(0,4);
+                                String count = yearly_listen_count.substring(4);
+                                if (date.equals(Utils.get_date_yearly())){
+                                    long c = (Integer.parseInt(count))+1;
+                                    yearly_play = Utils.get_date_yearly()+c;
+                                }else {
+                                    yearly_play = Utils.get_date_yearly()+1;
+                                }
                             }
 
                             if (users==null || users.isEmpty()){
@@ -320,10 +344,12 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
                                         if (user_list.size() > 0) {
                                             String chosen_user = user_list.get(new Random().nextInt(user_list.size()));
+                                            Log.e("HELLO1", "RECOM1");
                                             db.collection(Utils.COLLECTION_METRICS).whereGreaterThan("users." + chosen_user, new_count).get()
                                                     .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                                                         @Override
                                                         public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                                            Log.e("HELLO1", "RECOM2");
                                                             if (queryDocumentSnapshots.size() > 1) {
                                                                 DocumentSnapshot snap = null;
                                                                 boolean loop = true;
@@ -380,9 +406,9 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                             map.put("title", song.getTitle());
                             map.put("url", song.getUrl());
                             map.put("lyrics", song.getLyrics());
-                            map.put("daily_play", String.valueOf(daily_play));
-                            map.put("monthly_play", String.valueOf(monthly_play));
-                            map.put("yearly_play", String.valueOf(yearly_play));
+                            map.put("daily_play", daily_play);
+                            map.put("monthly_play", monthly_play);
+                            map.put("yearly_play", yearly_play);
                             transaction.set(doc,map);
                             return null;
                         }
@@ -557,8 +583,8 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                     @Nullable
                     @Override
                     public Bitmap getCurrentLargeIcon(Player player, PlayerNotificationManager.BitmapCallback callback) {
-                        //return getAlbumImage(playlist.get(player.getCurrentWindowIndex()));
-                        return null;
+                        return getAlbumImage(playlist.get(player.getCurrentWindowIndex()));
+                        //return null;
                     }
                 }, new PlayerNotificationManager.NotificationListener() {
                     @Override
@@ -726,10 +752,6 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
             @Override
             public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-                if (!timer_on){
-                    timer_on=true;
-                    song_played_record();
-                }
             }
 
             @Override
@@ -755,19 +777,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
                 db.collection(Utils.COLLECTION_USERS).document(user.getUid())
                         .collection(Utils.COLLECTION_SETTINGS).document(user.getUid())
-                        .update(map)
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Log.d("ABC", "DocumentSnapshot successfully written!");
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.w("ABC", "Error writing document", e);
-                            }
-                        });
+                        .update(map);
             }
 
             @Override
@@ -780,19 +790,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
                 db.collection(Utils.COLLECTION_USERS).document(user.getUid())
                         .collection(Utils.COLLECTION_SETTINGS).document(user.getUid())
-                        .update(map)
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Log.d("ABC", "DocumentSnapshot successfully written!");
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.w("ABC", "Error writing document", e);
-                            }
-                        });
+                        .update(map);
             }
 
             @Override
@@ -802,6 +800,30 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
             @Override
             public void onPositionDiscontinuity(int reason) {
+
+                if (playing_song==null){
+                    playing_song = playlist.get(player.getCurrentWindowIndex());
+                    if (!timer_on){
+                        timer_on=true;
+                        song_played_record();
+                    }
+                }else {
+                    if (playlist.get(player.getCurrentWindowIndex()).getId().equals(playing_song.getId())){
+                        long b = player.getDuration()/2;
+                        if (player.getCurrentPosition() < b){
+                            if (!timer_on){
+                                timer_on=true;
+                                song_played_record();
+                            }
+                        }
+                    }else {
+                        playing_song = playlist.get(player.getCurrentWindowIndex());
+                        if (!timer_on){
+                            timer_on=true;
+                            song_played_record();
+                        }
+                    }
+                }
             }
 
             @Override

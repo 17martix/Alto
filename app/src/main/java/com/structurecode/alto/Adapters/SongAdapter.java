@@ -318,7 +318,7 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                                                                             context.sendBroadcast(intent2);
                                                                         }
                                                                     }
-                                                                    dialog.dismiss();
+                                                                    //dialog.dismiss();
                                                                 }
                                                             })
                                                             .addOnFailureListener(new OnFailureListener() {
@@ -328,6 +328,7 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                                                                     dialog.dismiss();
                                                                 }
                                                             });
+                                                    dialog.dismiss();
                                                 }
                                             });
                                         }

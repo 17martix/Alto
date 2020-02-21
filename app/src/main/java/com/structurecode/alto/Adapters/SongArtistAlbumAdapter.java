@@ -305,7 +305,7 @@ public class SongArtistAlbumAdapter extends RecyclerView.Adapter<SongArtistAlbum
                                                                             context.sendBroadcast(intent2);
                                                                         }
                                                                     }
-                                                                    dialog.dismiss();
+                                                                    //dialog.dismiss();
                                                                 }
                                                             })
                                                             .addOnFailureListener(new OnFailureListener() {
@@ -315,6 +315,7 @@ public class SongArtistAlbumAdapter extends RecyclerView.Adapter<SongArtistAlbum
                                                                     dialog.dismiss();
                                                                 }
                                                             });
+                                                    dialog.dismiss();
                                                 }
                                             });
                                         }

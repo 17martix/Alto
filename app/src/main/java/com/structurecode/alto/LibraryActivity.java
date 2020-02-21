@@ -26,6 +26,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.structurecode.alto.Fragments.AlbumFragment;
 import com.structurecode.alto.Fragments.ArtistFragment;
@@ -35,7 +36,9 @@ import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Models.Playlist;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import static com.structurecode.alto.Helpers.Utils.db;
@@ -208,17 +211,22 @@ public class LibraryActivity extends BaseActivity  {
                             inputTitle=inputTitle.trim();
                         }
 
-                        Playlist playlist=new Playlist(inputTitle,exposure);
-                        db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                                .collection(Utils.COLLECTION_PLAYLISTS).document()
-                                .set(playlist)
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        String id = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                                .collection(Utils.COLLECTION_PLAYLISTS).document().getId();
+                        Playlist playlist=new Playlist(id,inputTitle,exposure);
+
+                        DocumentReference doc = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                                .collection(Utils.COLLECTION_PLAYLISTS).document(id);
+
+                        doc.set(playlist).addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void aVoid) {
+                                        /*Map<String,Object> content = new HashMap<>();
+                                        content.put("id",doc.getId());
+                                        doc.update(content);*/
                                         Log.d("ABC", "DocumentSnapshot successfully written!");
                                     }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
+                                }).addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
                                         Log.w("ABC", "Error writing document", e);

@@ -110,8 +110,7 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
     protected void onDestroy() {
         if (serviceBound) {
             unbindService(serviceConnection);
-            //service is active
-            //player.stopSelf();
+            player.stopSelf();
         }
 
         if (checkBroadcast != null) {

@@ -6,6 +6,7 @@
   <color name="primaryBackgroundColor">#E0F7FA</color>
   <color name="secondaryBackgroundColor">#B2EBF2</color>
   <color name="transparent_background">#80FFFFFF</color>
+  <color name="transparent_background_black">#80000000</color>
   <color name="iconColor">#FFFFFF</color>
   <color name="accent_color">#FF5722</color>
 

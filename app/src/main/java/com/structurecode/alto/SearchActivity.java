@@ -100,9 +100,7 @@ public class SearchActivity extends BaseActivity {
                         placeholder();
                     }else {
                         for (QueryDocumentSnapshot snapshot : task.getResult()) {
-                            list.add(new Song(snapshot.getId(),snapshot.getString("title"),
-                                    snapshot.getString("artist"),snapshot.getString("album"),
-                                    snapshot.getString("path"),snapshot.getString("url"),snapshot.getString("lyrics")));
+                            list.add(snapshot.toObject(Song.class));
                         }
 
                         adapter = new OnlineSongAdapter(list,SearchActivity.this,true);
@@ -142,14 +140,15 @@ public class SearchActivity extends BaseActivity {
     }
 
     public void placeholder(){
-        db.collection(Utils.COLLECTION_SONGS).limit(50).orderBy("year", Query.Direction.DESCENDING)
+        db.collection(Utils.COLLECTION_SONGS).limit(150).orderBy("year", Query.Direction.DESCENDING)
                 .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 for (DocumentSnapshot snapshot : queryDocumentSnapshots) {
-                    list.add(new Song(snapshot.getId(),snapshot.getString("title"),
+                    /*list.add(new Song(snapshot.getId(),snapshot.getString("title"),
                             snapshot.getString("artist"),snapshot.getString("album"),
-                            snapshot.getString("path"),snapshot.getString("url")));
+                            snapshot.getString("path"),snapshot.getString("url"),snapshot.getString("lyrics")));*/
+                    list.add(snapshot.toObject(Song.class));
                 }
 
                 adapter = new OnlineSongAdapter(list,SearchActivity.this,true);

@@ -10,7 +10,16 @@ public class Song implements Parcelable {
     private String title;
     private String artist;
     private String album;
+    private int year;
+    private String genre;
+    private String mood;
+    private int track;
+    private int bpm;
+    private String label;
+    private String releasecountry;
+    private String acoustid_id;
     private String path;
+    private String license;
     private String url;
     private String lyrics;
     private String playlist_id;
@@ -18,34 +27,47 @@ public class Song implements Parcelable {
     public Song() {
     }
 
-    public Song(String id, String title, String artist, String album, String path, String url, String lyrics, String playlist_id) {
+    public Song(String id, String title, String artist, String album, int year, String genre,
+                String mood, int track, int bpm, String label, String releasecountry, String acoustid_id,
+                String path, String license, String url, String lyrics, String playlist_id) {
         this.id = id;
         this.title = title;
         this.artist = artist;
         this.album = album;
+        this.year = year;
+        this.genre = genre;
+        this.mood = mood;
+        this.track = track;
+        this.bpm = bpm;
+        this.label = label;
+        this.releasecountry = releasecountry;
+        this.acoustid_id = acoustid_id;
         this.path = path;
+        this.license = license;
         this.url = url;
         this.lyrics = lyrics;
         this.playlist_id = playlist_id;
     }
 
-    public Song(String id, String title, String artist, String album, String path, String url, String lyrics) {
+    public Song(String id, String title, String artist, String album, int year, String genre,
+                String mood, int track, int bpm, String label, String releasecountry, String acoustid_id,
+                String path, String license, String url, String lyrics) {
         this.id = id;
         this.title = title;
         this.artist = artist;
         this.album = album;
+        this.year = year;
+        this.genre = genre;
+        this.mood = mood;
+        this.track = track;
+        this.bpm = bpm;
+        this.label = label;
+        this.releasecountry = releasecountry;
+        this.acoustid_id = acoustid_id;
         this.path = path;
+        this.license = license;
         this.url = url;
         this.lyrics = lyrics;
-    }
-
-    public Song(String id, String title, String artist, String album, String path, String url) {
-        this.id = id;
-        this.title = title;
-        this.artist = artist;
-        this.album = album;
-        this.path = path;
-        this.url = url;
     }
 
     protected Song(Parcel in) {
@@ -53,7 +75,16 @@ public class Song implements Parcelable {
         title = in.readString();
         artist = in.readString();
         album = in.readString();
+        year = in.readInt();
+        genre = in.readString();
+        mood = in.readString();
+        track = in.readInt();
+        bpm = in.readInt();
+        label = in.readString();
+        releasecountry = in.readString();
+        acoustid_id = in.readString();
         path = in.readString();
+        license = in.readString();
         url = in.readString();
         lyrics = in.readString();
         playlist_id = in.readString();
@@ -103,12 +134,84 @@ public class Song implements Parcelable {
         this.album = album;
     }
 
+    public int getYear() {
+        return year;
+    }
+
+    public void setYear(int year) {
+        this.year = year;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
+
+    public String getMood() {
+        return mood;
+    }
+
+    public void setMood(String mood) {
+        this.mood = mood;
+    }
+
+    public int getTrack() {
+        return track;
+    }
+
+    public void setTrack(int track) {
+        this.track = track;
+    }
+
+    public int getBpm() {
+        return bpm;
+    }
+
+    public void setBpm(int bpm) {
+        this.bpm = bpm;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public String getReleasecountry() {
+        return releasecountry;
+    }
+
+    public void setReleasecountry(String releasecountry) {
+        this.releasecountry = releasecountry;
+    }
+
+    public String getAcoustid_id() {
+        return acoustid_id;
+    }
+
+    public void setAcoustid_id(String acoustid_id) {
+        this.acoustid_id = acoustid_id;
+    }
+
     public String getPath() {
         return path;
     }
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public String getLicense() {
+        return license;
+    }
+
+    public void setLicense(String license) {
+        this.license = license;
     }
 
     public String getUrl() {
@@ -146,7 +249,16 @@ public class Song implements Parcelable {
         dest.writeString(title);
         dest.writeString(artist);
         dest.writeString(album);
+        dest.writeInt(year);
+        dest.writeString(genre);
+        dest.writeString(mood);
+        dest.writeInt(track);
+        dest.writeInt(bpm);
+        dest.writeString(label);
+        dest.writeString(releasecountry);
+        dest.writeString(acoustid_id);
         dest.writeString(path);
+        dest.writeString(license);
         dest.writeString(url);
         dest.writeString(lyrics);
         dest.writeString(playlist_id);

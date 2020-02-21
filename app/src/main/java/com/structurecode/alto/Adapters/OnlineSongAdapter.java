@@ -303,7 +303,7 @@ public class OnlineSongAdapter extends RecyclerView.Adapter<OnlineSongAdapter.So
                                                                             context.sendBroadcast(intent2);
                                                                         }
                                                                     }
-                                                                    dialog.dismiss();
+                                                                    //dialog.dismiss();
                                                                 }
                                                             })
                                                             .addOnFailureListener(new OnFailureListener() {
@@ -313,6 +313,7 @@ public class OnlineSongAdapter extends RecyclerView.Adapter<OnlineSongAdapter.So
                                                                     dialog.dismiss();
                                                                 }
                                                             });
+                                                    dialog.dismiss();
                                                 }
                                             });
                                         }

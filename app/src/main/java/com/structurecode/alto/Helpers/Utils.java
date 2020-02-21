@@ -120,22 +120,22 @@ public class Utils {
         return result;
     }
 
-    public static int get_date_daily(){
+    public static String get_date_daily(){
         Date date = new Date();
         String result=date_format_daily.format(date);
-        return Integer.parseInt(result);
+        return result;
     }
 
-    public static int get_date_yearly(){
+    public static String get_date_yearly(){
         Date date = new Date();
         String result=date_format_yearly.format(date);
-        return Integer.parseInt(result);
+        return result;
     }
 
-    public static int get_date_monthly(){
+    public static String get_date_monthly(){
         Date date = new Date();
         String result=date_format_monthly.format(date);
-        return Integer.parseInt(result);
+        return result;
     }
 
     public static Date get_date(String datetoSaved){
