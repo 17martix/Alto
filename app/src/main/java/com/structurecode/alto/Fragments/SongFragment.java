@@ -23,6 +23,7 @@ import com.structurecode.alto.R;
 import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_COMPLETED;
+import static com.structurecode.alto.Services.PlayerService.setting;
 
 public class SongFragment extends Fragment {
 
@@ -49,7 +50,8 @@ public class SongFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                .collection(Utils.COLLECTION_LIBRARY).orderBy("title",Query.Direction.ASCENDING);
+                .collection(Utils.COLLECTION_LIBRARY).whereArrayContains("license",setting.getLicense())
+                .orderBy("title",Query.Direction.ASCENDING);
 
         FirestoreRecyclerOptions<Song> options = new FirestoreRecyclerOptions.Builder<Song>()
                 .setQuery(query, Song.class)

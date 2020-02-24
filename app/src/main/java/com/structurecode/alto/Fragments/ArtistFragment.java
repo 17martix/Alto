@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_COMPLETED;
+import static com.structurecode.alto.Services.PlayerService.setting;
 
 /**
  * Created by Guy on 4/23/2017.
@@ -57,7 +58,8 @@ public class ArtistFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                .collection(Utils.COLLECTION_LIBRARY).orderBy("artist",Query.Direction.ASCENDING);
+                .collection(Utils.COLLECTION_LIBRARY).whereArrayContains("license",setting.getLicense())
+                .orderBy("artist",Query.Direction.ASCENDING);
 
         FirestoreRecyclerOptions<Song> options = new FirestoreRecyclerOptions.Builder<Song>()
                 .setQuery(query, Song.class)

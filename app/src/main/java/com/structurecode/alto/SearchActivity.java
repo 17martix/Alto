@@ -50,6 +50,7 @@ import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.mAuth;
 import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_COMPLETED;
+import static com.structurecode.alto.Services.PlayerService.setting;
 
 public class SearchActivity extends BaseActivity {
 
@@ -90,7 +91,8 @@ public class SearchActivity extends BaseActivity {
             }
         });*/
 
-        db.collection(Utils.COLLECTION_METRICS).limit(50).orderBy("monthly_play", Query.Direction.DESCENDING)
+        db.collection(Utils.COLLECTION_METRICS).whereArrayContains("license",setting.getLicense())
+                .orderBy("monthly_play", Query.Direction.DESCENDING).limit(50)
                 .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {

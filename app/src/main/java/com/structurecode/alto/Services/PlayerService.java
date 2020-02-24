@@ -59,6 +59,7 @@ import com.google.firebase.firestore.Transaction;
 import com.structurecode.alto.Download.SongDownloadManager;
 import com.structurecode.alto.Download.SongDownloadTracker;
 import com.structurecode.alto.Helpers.Utils;
+import com.structurecode.alto.Models.MetricSong;
 import com.structurecode.alto.Models.SearchConfig;
 import com.structurecode.alto.Models.Setting;
 import com.structurecode.alto.Models.Song;
@@ -140,7 +141,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         mAuth=FirebaseAuth.getInstance();
         db= FirebaseFirestore.getInstance();
         user = mAuth.getCurrentUser();
-        setting = new Setting(1,1,0,1);
+        //setting = new Setting(1,1,0,1,"free");
         searchConfig = new SearchConfig();
 
         dataSourceFactory = SongDownloadManager.buildDataSourceFactory(context);
@@ -159,9 +160,9 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                 .setTrackSelector(trackSelector)
                 .setLoadControl(loadControl)
                 .build();
-        player.setRepeatMode(setting.getRepeat_mode());
+        /*player.setRepeatMode(setting.getRepeat_mode());
         if (setting.getShuffle_mode()==0) player.setShuffleModeEnabled(false);
-        else player.setShuffleModeEnabled(true);
+        else player.setShuffleModeEnabled(true);*/
 
         initialize_broadcasts();
         notification_manager();
@@ -211,6 +212,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
             public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException e) {
                 if (e != null) {
                     Log.w("ABC", "Listen failed.", e);
+                    setting = new Setting(1,1,0,2,"free");
                     return;
                 }
 
@@ -221,6 +223,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                     if (setting.getShuffle_mode()==0) player.setShuffleModeEnabled(false);
                     else player.setShuffleModeEnabled(true);
                 } else {
+                    setting = new Setting(1,1,0,2,"free");
                     Log.d("ABC", "Current data: null");
                 }
             }
@@ -360,16 +363,17 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                                                                     }
                                                                 }
 
-                                                                Map<String, Object> recom_song = new HashMap<>();
+                                                                MetricSong recom = snap.toObject(MetricSong.class);
+                                                                /*Map<String, Object> recom_song = new HashMap<>();
                                                                 recom_song.put("id", snap.getId());
                                                                 recom_song.put("artist", snap.getString("artist"));
                                                                 recom_song.put("album", snap.getString("album"));
                                                                 recom_song.put("path", snap.getString("path"));
                                                                 recom_song.put("title", snap.getString("title"));
                                                                 recom_song.put("url", snap.getString("url"));
-                                                                recom_song.put("daily_play", snap.getString("daily_play"));
+                                                                recom_song.put("daily_play", snap.getString("daily_play"));*/
                                                                 db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(Utils.COLLECTION_RECOMMENDED).document(snap.getId())
-                                                                        .set(recom_song).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                        .set(recom).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                                     @Override
                                                                     public void onSuccess(Void aVoid) {
                                                                         Log.e("SUCCESS", "New Recommended Song Added");
@@ -397,7 +401,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                                 }
                             }
 
-                            Map<String, Object> map = new HashMap<>();
+                            /*Map<String, Object> map = new HashMap<>();
                             map.put("users", users);
                             map.put("id", song.getId());
                             map.put("artist", song.getArtist());
@@ -408,8 +412,9 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                             map.put("lyrics", song.getLyrics());
                             map.put("daily_play", daily_play);
                             map.put("monthly_play", monthly_play);
-                            map.put("yearly_play", yearly_play);
-                            transaction.set(doc,map);
+                            map.put("yearly_play", yearly_play);*/
+                            MetricSong metricSong = new MetricSong(song,users,daily_play,monthly_play,yearly_play);
+                            transaction.set(doc,metricSong);
                             return null;
                         }
                     }).addOnSuccessListener(new OnSuccessListener<Void>() {

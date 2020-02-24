@@ -156,24 +156,7 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
-                            Setting setting=new Setting(1,1,0,0);
-                            db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                                    .collection(Utils.COLLECTION_SETTINGS).document(user.getUid())
-                                    .set(setting)
-                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                        @Override
-                                        public void onSuccess(Void aVoid) {
-                                            Log.d("ABC", "DocumentSnapshot successfully written!");
-                                            updateUI(user);
-                                        }
-                                    })
-                                    .addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            hideProgressBar();
-                                            Log.w("ABC", "Error writing document", e);
-                                        }
-                                    });
+                            updateUI(user);
                         } else {
                             Toast.makeText(AuthActivity.this, R.string.login_failed,
                                     Toast.LENGTH_SHORT).show();

@@ -23,6 +23,7 @@ import com.structurecode.alto.R;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_COMPLETED;
+import static com.structurecode.alto.Services.PlayerService.setting;
 
 public class RecommendedFragment extends Fragment {
 
@@ -49,7 +50,7 @@ public class RecommendedFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                .collection(Utils.COLLECTION_RECOMMENDED)
+                .collection(Utils.COLLECTION_RECOMMENDED).whereArrayContains("license",setting.getLicense())
                 .orderBy("daily_play",Query.Direction.DESCENDING);
 
         FirestoreRecyclerOptions<Song> options = new FirestoreRecyclerOptions.Builder<Song>()

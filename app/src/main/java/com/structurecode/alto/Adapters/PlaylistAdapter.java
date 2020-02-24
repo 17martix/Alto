@@ -33,11 +33,14 @@ import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.structurecode.alto.Helpers.Utils.COLLECTION_SONGS;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.mAuth;
 import static com.structurecode.alto.Helpers.Utils.user;
+import static com.structurecode.alto.Services.PlayerService.setting;
 
 public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, PlaylistAdapter.PlaylistViewHolder> {
     Context context;
@@ -75,9 +78,9 @@ public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, Playlist
         holder.playlist_songs_recycler_view.setAdapter(songAdapter);*/
 
         holder.song_count.setText("");
-        db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                .collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots().getSnapshot(position).getId())
-                .collection(COLLECTION_SONGS).orderBy("title",Query.Direction.ASCENDING)
+        db.collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots().getSnapshot(position).getId())
+                .collection(COLLECTION_SONGS).whereArrayContains("license",setting.getLicense())
+                .orderBy("title",Query.Direction.ASCENDING)
                 .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -163,11 +166,12 @@ public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, Playlist
                                                     inputTitle=inputTitle.trim();
                                                 }
 
-                                                Playlist new_playlist=new Playlist(inputTitle,exposure);
-                                                db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                                                        .collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots()
+                                                Map<String,Object> map = new HashMap<>();
+                                                map.put("title",inputTitle);
+                                                map.put("exposure", exposure);
+                                                db.collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots()
                                                         .getSnapshot(clickedPosition).getId())
-                                                        .set(new_playlist)
+                                                        .update(map)
                                                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                             @Override
                                                             public void onSuccess(Void aVoid) {
@@ -190,8 +194,7 @@ public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, Playlist
                                 alertDialog.show();
                                 break;
                             case R.id.deletePlaylist:
-                                db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                                        .collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots().getSnapshot(clickedPosition).getId())
+                                db.collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots().getSnapshot(clickedPosition).getId())
                                         .delete()
                                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override

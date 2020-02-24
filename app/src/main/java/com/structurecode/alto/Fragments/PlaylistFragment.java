@@ -57,8 +57,8 @@ public class PlaylistFragment extends Fragment {
         recyclerView = (RecyclerView) view.findViewById(R.id.PlaylistList);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                .collection(Utils.COLLECTION_PLAYLISTS).orderBy("title",Query.Direction.ASCENDING);
+        Query query = db.collection(Utils.COLLECTION_PLAYLISTS).whereArrayContains("followers",user.getUid())
+                .orderBy("title",Query.Direction.ASCENDING);
 
         FirestoreRecyclerOptions<Playlist> options = new FirestoreRecyclerOptions.Builder<Playlist>()
                 .setQuery(query, Playlist.class)

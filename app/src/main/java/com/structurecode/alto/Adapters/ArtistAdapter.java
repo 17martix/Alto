@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.mAuth;
 import static com.structurecode.alto.Helpers.Utils.user;
+import static com.structurecode.alto.Services.PlayerService.setting;
 
 public class ArtistAdapter extends FirestoreRecyclerAdapter<Song, ArtistAdapter.ArtistViewHolder> {
     Context context;
@@ -99,7 +100,8 @@ public class ArtistAdapter extends FirestoreRecyclerAdapter<Song, ArtistAdapter.
             });*/
 
             db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(Utils.COLLECTION_LIBRARY)
-                    .whereEqualTo("artist",song.getArtist()).orderBy("title",Query.Direction.ASCENDING)
+                    .whereEqualTo("artist",song.getArtist()).whereArrayContains("license",setting.getLicense())
+                    .orderBy("title",Query.Direction.ASCENDING)
                     .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                 @Override
                 public void onSuccess(QuerySnapshot queryDocumentSnapshots) {

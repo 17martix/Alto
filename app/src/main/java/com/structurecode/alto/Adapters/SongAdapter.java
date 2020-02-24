@@ -40,7 +40,9 @@ import com.structurecode.alto.R;
 import com.structurecode.alto.Services.PlayerService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.structurecode.alto.Helpers.Utils.COLLECTION_PLAYLISTS;
@@ -67,6 +69,7 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
         this.context = context;
         this.is_parent=is_parent;
         this.in_library=in_library;
+        user = mAuth.getCurrentUser();
     }
 
     @Override
@@ -264,7 +267,7 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                                 db= FirebaseFirestore.getInstance();
                                 user = mAuth.getCurrentUser();
 
-                                db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(COLLECTION_PLAYLISTS)
+                                db.collection(Utils.COLLECTION_PLAYLISTS).whereEqualTo("user_id",user.getUid())
                                         .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                                     @Override
                                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -298,8 +301,7 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                                                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                                                     //playlist_song.setId(getSnapshots().getSnapshot(clickedPosition).getId());
                                                     playlist_song.setPlaylist_id(ids.get(position));
-                                                    db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                                                            .collection(Utils.COLLECTION_PLAYLISTS).document(ids.get(position))
+                                                    db.collection(Utils.COLLECTION_PLAYLISTS).document(ids.get(position))
                                                             .collection(COLLECTION_SONGS).document(getSnapshots().getSnapshot(clickedPosition).getId())
                                                             .set(playlist_song)
                                                             .addOnSuccessListener(new OnSuccessListener<Void>() {

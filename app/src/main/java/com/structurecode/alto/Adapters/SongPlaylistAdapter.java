@@ -189,8 +189,7 @@ public class SongPlaylistAdapter extends RecyclerView.Adapter<SongPlaylistAdapte
                                 db = FirebaseFirestore.getInstance();
                                 user = mAuth.getCurrentUser();
 
-                                db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                                        .collection(Utils.COLLECTION_PLAYLISTS).document(song.getPlaylist_id())
+                                db.collection(Utils.COLLECTION_PLAYLISTS).document(song.getPlaylist_id())
                                         .collection(COLLECTION_SONGS).document(song.getId())
                                         .delete()
                                         .addOnSuccessListener(new OnSuccessListener<Void>() {

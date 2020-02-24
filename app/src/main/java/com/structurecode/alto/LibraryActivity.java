@@ -211,12 +211,13 @@ public class LibraryActivity extends BaseActivity  {
                             inputTitle=inputTitle.trim();
                         }
 
-                        String id = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                                .collection(Utils.COLLECTION_PLAYLISTS).document().getId();
-                        Playlist playlist=new Playlist(id,inputTitle,exposure);
+                        ArrayList<String> followers = new ArrayList<>();
+                        followers.add(user.getUid());
+                        String id = db.collection(Utils.COLLECTION_PLAYLISTS).document().getId();
+                        Playlist playlist=new Playlist(id,inputTitle,exposure,user.getUid(),user.getDisplayName(),
+                                followers);
 
-                        DocumentReference doc = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                                .collection(Utils.COLLECTION_PLAYLISTS).document(id);
+                        DocumentReference doc = db.collection(Utils.COLLECTION_PLAYLISTS).document(id);
 
                         doc.set(playlist).addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override

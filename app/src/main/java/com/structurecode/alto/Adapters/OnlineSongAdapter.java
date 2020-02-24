@@ -253,7 +253,7 @@ public class OnlineSongAdapter extends RecyclerView.Adapter<OnlineSongAdapter.So
                                 db= FirebaseFirestore.getInstance();
                                 user = mAuth.getCurrentUser();
 
-                                db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(COLLECTION_PLAYLISTS)
+                                db.collection(Utils.COLLECTION_PLAYLISTS).whereEqualTo("user_id",user.getUid())
                                         .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                                     @Override
                                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -283,8 +283,7 @@ public class OnlineSongAdapter extends RecyclerView.Adapter<OnlineSongAdapter.So
                                                 @Override
                                                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                                                     song.setPlaylist_id(ids.get(position));
-                                                    db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                                                            .collection(Utils.COLLECTION_PLAYLISTS).document(ids.get(position))
+                                                    db.collection(COLLECTION_PLAYLISTS).document(ids.get(position))
                                                             .collection(COLLECTION_SONGS).document(song.getId())
                                                             .set(song)
                                                             .addOnSuccessListener(new OnSuccessListener<Void>() {

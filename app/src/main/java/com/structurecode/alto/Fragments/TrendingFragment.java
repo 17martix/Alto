@@ -27,6 +27,7 @@ import com.structurecode.alto.R;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_COMPLETED;
+import static com.structurecode.alto.Services.PlayerService.setting;
 
 public class TrendingFragment extends Fragment {
 
@@ -52,7 +53,8 @@ public class TrendingFragment extends Fragment {
         recyclerView = (RecyclerView) view.findViewById(R.id.trending_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        Query query = db.collection(Utils.COLLECTION_METRICS).orderBy("daily_play",Query.Direction.DESCENDING)
+        Query query = db.collection(Utils.COLLECTION_METRICS).whereArrayContains("license",setting.getLicense())
+                .orderBy("daily_play",Query.Direction.DESCENDING)
                 .limit(50);
 
         FirestoreRecyclerOptions<Song> options = new FirestoreRecyclerOptions.Builder<Song>()

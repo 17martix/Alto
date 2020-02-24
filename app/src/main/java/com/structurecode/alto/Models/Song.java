@@ -5,6 +5,8 @@ import android.os.Parcelable;
 
 import com.structurecode.alto.Helpers.Utils;
 
+import java.util.List;
+
 public class Song implements Parcelable {
     private String id;
     private String title;
@@ -19,7 +21,7 @@ public class Song implements Parcelable {
     private String releasecountry;
     private String acoustid_id;
     private String path;
-    private String license;
+    private List<String> license;
     private String url;
     private String lyrics;
     private String playlist_id;
@@ -29,7 +31,7 @@ public class Song implements Parcelable {
 
     public Song(String id, String title, String artist, String album, int year, String genre,
                 String mood, int track, int bpm, String label, String releasecountry, String acoustid_id,
-                String path, String license, String url, String lyrics, String playlist_id) {
+                String path, List<String> license, String url, String lyrics, String playlist_id) {
         this.id = id;
         this.title = title;
         this.artist = artist;
@@ -49,27 +51,6 @@ public class Song implements Parcelable {
         this.playlist_id = playlist_id;
     }
 
-    public Song(String id, String title, String artist, String album, int year, String genre,
-                String mood, int track, int bpm, String label, String releasecountry, String acoustid_id,
-                String path, String license, String url, String lyrics) {
-        this.id = id;
-        this.title = title;
-        this.artist = artist;
-        this.album = album;
-        this.year = year;
-        this.genre = genre;
-        this.mood = mood;
-        this.track = track;
-        this.bpm = bpm;
-        this.label = label;
-        this.releasecountry = releasecountry;
-        this.acoustid_id = acoustid_id;
-        this.path = path;
-        this.license = license;
-        this.url = url;
-        this.lyrics = lyrics;
-    }
-
     protected Song(Parcel in) {
         id = in.readString();
         title = in.readString();
@@ -84,7 +65,7 @@ public class Song implements Parcelable {
         releasecountry = in.readString();
         acoustid_id = in.readString();
         path = in.readString();
-        license = in.readString();
+        license = in.createStringArrayList();
         url = in.readString();
         lyrics = in.readString();
         playlist_id = in.readString();
@@ -206,11 +187,11 @@ public class Song implements Parcelable {
         this.path = path;
     }
 
-    public String getLicense() {
+    public List<String> getLicense() {
         return license;
     }
 
-    public void setLicense(String license) {
+    public void setLicense(List<String> license) {
         this.license = license;
     }
 
@@ -258,7 +239,7 @@ public class Song implements Parcelable {
         dest.writeString(releasecountry);
         dest.writeString(acoustid_id);
         dest.writeString(path);
-        dest.writeString(license);
+        dest.writeStringList(license);
         dest.writeString(url);
         dest.writeString(lyrics);
         dest.writeString(playlist_id);

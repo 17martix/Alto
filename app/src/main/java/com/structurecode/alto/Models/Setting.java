@@ -5,15 +5,17 @@ public class Setting{
     private int is_playlist_downloaded;
     private int shuffle_mode;
     private int repeat_mode;
+    private String license;
 
     public Setting() {
     }
 
-    public Setting(int is_library_downloaded, int is_playlist_downloaded, int shuffle_mode, int repeat_mode) {
+    public Setting(int is_library_downloaded, int is_playlist_downloaded, int shuffle_mode, int repeat_mode, String license) {
         this.is_library_downloaded = is_library_downloaded;
         this.is_playlist_downloaded = is_playlist_downloaded;
         this.shuffle_mode = shuffle_mode;
         this.repeat_mode = repeat_mode;
+        this.license = license;
     }
 
     public int getIs_library_downloaded() {
@@ -46,5 +48,13 @@ public class Setting{
 
     public void setRepeat_mode(int repeat_mode) {
         this.repeat_mode = repeat_mode;
+    }
+
+    public String getLicense() {
+        return license;
+    }
+
+    public void setLicense(String license) {
+        this.license = license;
     }
 }

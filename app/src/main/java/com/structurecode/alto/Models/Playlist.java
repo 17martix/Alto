@@ -3,28 +3,41 @@ package com.structurecode.alto.Models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.List;
+
 public class Playlist implements Parcelable {
     private String id;
     private String title;
     private String exposure;
     private String genre;
     private String mood;
+    private String user_id;
+    private String user_name;
+    private List<String> followers;
 
     public Playlist() {
     }
 
-    public Playlist(String id, String title, String exposure, String genre, String mood) {
+    public Playlist(String id, String title, String exposure, String genre, String mood,
+                    String user_id, String user_name, List<String> followers) {
         this.id = id;
         this.title = title;
         this.exposure = exposure;
         this.genre = genre;
         this.mood = mood;
+        this.user_id = user_id;
+        this.user_name = user_name;
+        this.followers = followers;
     }
 
-    public Playlist(String id, String title, String exposure) {
+    public Playlist(String id, String title, String exposure, String user_id, String user_name,
+                    List<String> followers) {
         this.id = id;
         this.title = title;
         this.exposure = exposure;
+        this.user_id = user_id;
+        this.user_name = user_name;
+        this.followers = followers;
     }
 
     protected Playlist(Parcel in) {
@@ -33,6 +46,9 @@ public class Playlist implements Parcelable {
         exposure = in.readString();
         genre = in.readString();
         mood = in.readString();
+        user_id = in.readString();
+        user_name = in.readString();
+        followers = in.createStringArrayList();
     }
 
     public static final Creator<Playlist> CREATOR = new Creator<Playlist>() {
@@ -87,6 +103,30 @@ public class Playlist implements Parcelable {
         this.mood = mood;
     }
 
+    public String getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(String user_id) {
+        this.user_id = user_id;
+    }
+
+    public String getUser_name() {
+        return user_name;
+    }
+
+    public void setUser_name(String user_name) {
+        this.user_name = user_name;
+    }
+
+    public List<String> getFollowers() {
+        return followers;
+    }
+
+    public void setFollowers(List<String> followers) {
+        this.followers = followers;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -99,5 +139,8 @@ public class Playlist implements Parcelable {
         dest.writeString(exposure);
         dest.writeString(genre);
         dest.writeString(mood);
+        dest.writeString(user_id);
+        dest.writeString(user_name);
+        dest.writeStringList(followers);
     }
 }

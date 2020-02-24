@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.mAuth;
 import static com.structurecode.alto.Helpers.Utils.user;
+import static com.structurecode.alto.Services.PlayerService.setting;
 
 public class AlbumAdapter extends FirestoreRecyclerAdapter<Song, AlbumAdapter.AlbumViewHolder> {
     Context context;
@@ -57,7 +58,8 @@ public class AlbumAdapter extends FirestoreRecyclerAdapter<Song, AlbumAdapter.Al
 
             holder.song_count.setText("");
             db.collection(Utils.COLLECTION_USERS).document(user.getUid()).collection(Utils.COLLECTION_LIBRARY)
-                    .whereEqualTo("album",song.getAlbum()).orderBy("title", Query.Direction.ASCENDING)
+                    .whereEqualTo("album",song.getAlbum()).whereArrayContains("license",setting.getLicense())
+                    .orderBy("title", Query.Direction.ASCENDING)
                     .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                 @Override
                 public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
