@@ -35,6 +35,7 @@ import com.google.firebase.storage.StorageReference;
 import com.structurecode.alto.Download.SongDownloadManager;
 import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Models.Playlist;
+import com.structurecode.alto.Models.Setting;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 import com.structurecode.alto.Services.PlayerService;
@@ -63,13 +64,15 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
     boolean is_parent;
     boolean is_downloaded;
     boolean in_library;
+    Setting setting;
 
-    public SongAdapter(@NonNull FirestoreRecyclerOptions<Song> options,Context context, boolean is_parent, boolean in_library) {
+    public SongAdapter(@NonNull FirestoreRecyclerOptions<Song> options,Context context, boolean is_parent, boolean in_library,Setting setting) {
         super(options);
         this.context = context;
         this.is_parent=is_parent;
         this.in_library=in_library;
         user = mAuth.getCurrentUser();
+        this.setting = setting;
     }
 
     @Override
@@ -102,7 +105,7 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                         holder.popup.getMenu().findItem(R.id.download).setTitle(R.string.action_download);
 
                         if (in_library){
-                            if (PlayerService.setting.getIs_library_downloaded()== 1){
+                            if (setting.getIs_library_downloaded()== 1){
                                 if (song.getUrl()!=null && !song.getUrl().isEmpty()) {
                                     Intent intent2 = new Intent();
                                     intent2.setAction(DOWNLOAD);
@@ -134,7 +137,7 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                 holder.downloaded.setVisibility(View.GONE);
                 holder.popup.getMenu().findItem(R.id.download).setTitle(R.string.action_download);
                 if (in_library){
-                    if (PlayerService.setting.getIs_library_downloaded()== 1){
+                    if (setting.getIs_library_downloaded()== 1){
                         if (song.getUrl()!=null && !song.getUrl().isEmpty()) {
                             Intent intent2 = new Intent();
                             intent2.setAction(DOWNLOAD);
@@ -244,7 +247,7 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                                                                 intent.setAction(Utils.ADDED_SONG_TO_LIBRARY);
                                                                 context.sendBroadcast(intent);
 
-                                                                if (PlayerService.setting.getIs_library_downloaded()== 1){
+                                                                if (setting.getIs_library_downloaded()== 1){
                                                                     if (song.getUrl()!=null && !song.getUrl().isEmpty()) {
                                                                         Intent intent2 = new Intent();
                                                                         intent2.setAction(DOWNLOAD);
@@ -312,7 +315,7 @@ public class SongAdapter extends FirestoreRecyclerAdapter<Song, SongAdapter.Song
                                                                     intent.setAction(Utils.ADDED_TO_PLAYLIST);
                                                                     context.sendBroadcast(intent);
 
-                                                                    if (PlayerService.setting.getIs_playlist_downloaded()== 1){
+                                                                    if (setting.getIs_playlist_downloaded()== 1){
                                                                         if (song.getUrl()!=null && !song.getUrl().isEmpty()) {
                                                                             Intent intent2 = new Intent();
                                                                             intent2.setAction(DOWNLOAD);

@@ -9,21 +9,25 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.structurecode.alto.Adapters.SongAdapter;
 import com.structurecode.alto.Helpers.Utils;
+import com.structurecode.alto.Models.Setting;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 
 import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_COMPLETED;
-import static com.structurecode.alto.Services.PlayerService.setting;
 
 public class SongFragment extends Fragment {
 
@@ -31,6 +35,7 @@ public class SongFragment extends Fragment {
     private RecyclerView recyclerView;
 
     private BroadcastReceiver download_completed_broadcast;
+    private Setting setting;
 
     public SongFragment() {
         // Required empty public constructor
@@ -49,23 +54,43 @@ public class SongFragment extends Fragment {
         recyclerView = (RecyclerView) view.findViewById(R.id.SongList);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                .collection(Utils.COLLECTION_LIBRARY).whereArrayContains("license",setting.getLicense())
-                .orderBy("title",Query.Direction.ASCENDING);
-
-        FirestoreRecyclerOptions<Song> options = new FirestoreRecyclerOptions.Builder<Song>()
-                .setQuery(query, Song.class)
-                .build();
-        adapter = new SongAdapter(options,getContext(),true,true);
-
-        recyclerView.setAdapter(adapter);
+        setting = new Setting(1,1,0,2,"free");
+        db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                .collection(Utils.COLLECTION_SETTINGS).document(user.getUid()).get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if (documentSnapshot.exists()){
+                            setting = documentSnapshot.toObject(Setting.class);
+                        }
+                        main_query(setting.getLicense());
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                main_query(setting.getLicense());
+            }
+        });
 
         initialize_broadcasts();
 
         return view;
     }
 
-    @Override
+    public void main_query(String license){
+        Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                .collection(Utils.COLLECTION_LIBRARY).whereArrayContains("license",license)
+                .orderBy("title",Query.Direction.ASCENDING);
+
+        FirestoreRecyclerOptions<Song> options = new FirestoreRecyclerOptions.Builder<Song>()
+                .setQuery(query, Song.class)
+                .build();
+        adapter = new SongAdapter(options,getContext(),true,true,setting);
+        recyclerView.setAdapter(adapter);
+        adapter.startListening();
+    }
+
+   /* @Override
     public void onStart() {
         super.onStart();
         adapter.startListening();
@@ -75,7 +100,7 @@ public class SongFragment extends Fragment {
     public void onStop() {
         super.onStop();
         //adapter.stopListening();
-    }
+    }*/
 
     public void initialize_broadcasts(){
         IntentFilter download_completed_filter = new IntentFilter();

@@ -19,6 +19,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.structurecode.alto.Helpers.Utils;
+import com.structurecode.alto.Models.Setting;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 
@@ -27,17 +28,18 @@ import java.util.ArrayList;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.mAuth;
 import static com.structurecode.alto.Helpers.Utils.user;
-import static com.structurecode.alto.Services.PlayerService.setting;
 
 public class AlbumAdapter extends FirestoreRecyclerAdapter<Song, AlbumAdapter.AlbumViewHolder> {
     Context context;
     ArrayList<String> albums;
+    Setting setting;
 
-    public AlbumAdapter(@NonNull FirestoreRecyclerOptions<Song> options, Context context) {
+    public AlbumAdapter(@NonNull FirestoreRecyclerOptions<Song> options, Context context,Setting setting) {
         super(options);
         this.context = context;
         user = mAuth.getCurrentUser();
         albums=new ArrayList<>();
+        this.setting = setting;
     }
 
     @Override
@@ -79,7 +81,7 @@ public class AlbumAdapter extends FirestoreRecyclerAdapter<Song, AlbumAdapter.Al
                     }
 
                     holder.album_songs_recycler_view.setVisibility(View.GONE);
-                    SongArtistAlbumAdapter songArtistAlbumAdapter =new SongArtistAlbumAdapter(list,context,false);
+                    SongArtistAlbumAdapter songArtistAlbumAdapter =new SongArtistAlbumAdapter(list,context,false,setting);
                     holder.album_songs_recycler_view.setHasFixedSize(true);
                     holder.album_songs_recycler_view.setLayoutManager(new LinearLayoutManager(context));
                     holder.album_songs_recycler_view.setAdapter(songArtistAlbumAdapter);

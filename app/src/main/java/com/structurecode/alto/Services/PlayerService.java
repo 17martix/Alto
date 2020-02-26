@@ -119,7 +119,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
     private FFmpegMediaMetadataRetriever mediaMetadataRetriever;
     private Bitmap albumImage=null;
-    public static Setting setting;
+    private Setting setting;
     private SearchConfig searchConfig;
     private Timer timer;
     private boolean timer_on=false;
@@ -141,7 +141,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         mAuth=FirebaseAuth.getInstance();
         db= FirebaseFirestore.getInstance();
         user = mAuth.getCurrentUser();
-        //setting = new Setting(1,1,0,1,"free");
+        setting = new Setting(1,1,0,2,"free");
         searchConfig = new SearchConfig();
 
         dataSourceFactory = SongDownloadManager.buildDataSourceFactory(context);
@@ -160,9 +160,9 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                 .setTrackSelector(trackSelector)
                 .setLoadControl(loadControl)
                 .build();
-        /*player.setRepeatMode(setting.getRepeat_mode());
+        player.setRepeatMode(setting.getRepeat_mode());
         if (setting.getShuffle_mode()==0) player.setShuffleModeEnabled(false);
-        else player.setShuffleModeEnabled(true);*/
+        else player.setShuffleModeEnabled(true);
 
         initialize_broadcasts();
         notification_manager();
@@ -487,6 +487,8 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                 }
 
                 String device_id = snapshot.getString("device_id");
+
+                if (device_id==null || device_id.isEmpty()) device_id="empty";
 
                 if (!device_id.equals(Utils.get_device_id(context))) {
                         /*if (player!=null) {

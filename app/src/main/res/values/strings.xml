@@ -82,7 +82,7 @@
     <string name="editPlaylist">Edit Details</string>
     <string name="deletePlaylist">Delete Playlist</string>
     <string name="search_hint">Type To Start Searching</string>
-    <string name="playlist_empty">Click below to add your first playlist</string>
+    <string name="playlist_empty">No Playlist</string>
     <string name="playlist_empty_add">Add Playlist</string>
 
     <string name="added">Added</string>

@@ -9,22 +9,26 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.structurecode.alto.Adapters.AlbumAdapter;
 import com.structurecode.alto.Adapters.ArtistAdapter;
 import com.structurecode.alto.Helpers.Utils;
+import com.structurecode.alto.Models.Setting;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_COMPLETED;
-import static com.structurecode.alto.Services.PlayerService.setting;
 
 /**
  * Created by Guy on 4/23/2017.
@@ -36,6 +40,7 @@ public class AlbumFragment extends Fragment {
     private BroadcastReceiver added_album_song_broadcast;
     private BroadcastReceiver remove_album_song_broadcast;
     private BroadcastReceiver download_completed_broadcast;
+    private Setting setting;
 
     public AlbumFragment() {
         // Required empty public constructor
@@ -54,18 +59,39 @@ public class AlbumFragment extends Fragment {
         recyclerView = (RecyclerView) view.findViewById(R.id.AlbumList);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
-                .collection(Utils.COLLECTION_LIBRARY).whereArrayContains("license",setting.getLicense()).orderBy("album",Query.Direction.ASCENDING);
-
-        FirestoreRecyclerOptions<Song> options = new FirestoreRecyclerOptions.Builder<Song>()
-                .setQuery(query, Song.class)
-                .build();
-        adapter = new AlbumAdapter(options,getContext());
-        recyclerView.setAdapter(adapter);
+        setting = new Setting(1,1,0,2,"free");
+        db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                .collection(Utils.COLLECTION_SETTINGS).document(user.getUid()).get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if (documentSnapshot.exists()){
+                            setting = documentSnapshot.toObject(Setting.class);
+                        }
+                        main_query(setting.getLicense());
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                main_query(setting.getLicense());
+            }
+        });
 
         initialize_broadcasts();
         // Inflate the layout for this fragment
         return view;
+    }
+
+    public void main_query(String license){
+        Query query = db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                .collection(Utils.COLLECTION_LIBRARY).whereArrayContains("license",license).orderBy("album",Query.Direction.ASCENDING);
+
+        FirestoreRecyclerOptions<Song> options = new FirestoreRecyclerOptions.Builder<Song>()
+                .setQuery(query, Song.class)
+                .build();
+        adapter = new AlbumAdapter(options,getContext(),setting);
+        recyclerView.setAdapter(adapter);
+        adapter.startListening();
     }
 
     public void initialize_broadcasts(){
@@ -120,7 +146,7 @@ public class AlbumFragment extends Fragment {
         super.onDestroy();
     }
 
-    @Override
+    /*@Override
     public void onStart() {
         super.onStart();
         adapter.startListening();
@@ -130,6 +156,6 @@ public class AlbumFragment extends Fragment {
     public void onStop() {
         super.onStop();
         //adapter.stopListening();
-    }
+    }*/
 
 }

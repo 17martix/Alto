@@ -29,6 +29,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Models.Playlist;
+import com.structurecode.alto.Models.Setting;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 
@@ -40,15 +41,16 @@ import static com.structurecode.alto.Helpers.Utils.COLLECTION_SONGS;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.mAuth;
 import static com.structurecode.alto.Helpers.Utils.user;
-import static com.structurecode.alto.Services.PlayerService.setting;
 
 public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, PlaylistAdapter.PlaylistViewHolder> {
     Context context;
+    Setting setting;
 
-    public PlaylistAdapter(@NonNull FirestoreRecyclerOptions<Playlist> options, Context context) {
+    public PlaylistAdapter(@NonNull FirestoreRecyclerOptions<Playlist> options, Context context,Setting setting) {
         super(options);
         this.context = context;
         user = mAuth.getCurrentUser();
+        this.setting = setting;
     }
 
     @NonNull
@@ -104,8 +106,15 @@ public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, Playlist
                 holder.playlist_songs_recycler_view.setLayoutManager(new LinearLayoutManager(context));
                 holder.playlist_songs_recycler_view.setAdapter(songPlaylistAdapter);
             }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e("ABC",e.getMessage());
+            }
         });
     }
+
+
 
     public void deleteItem(int position) {
         getSnapshots().getSnapshot(position).getReference().delete();

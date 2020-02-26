@@ -28,6 +28,7 @@ import com.algolia.search.saas.CompletionHandler;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -39,6 +40,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.structurecode.alto.Adapters.OnlineSongAdapter;
 import com.structurecode.alto.Adapters.SongArtistAlbumAdapter;
 import com.structurecode.alto.Helpers.Utils;
+import com.structurecode.alto.Models.Setting;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.Services.PlayerService;
 
@@ -50,7 +52,6 @@ import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.mAuth;
 import static com.structurecode.alto.Helpers.Utils.user;
 import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_COMPLETED;
-import static com.structurecode.alto.Services.PlayerService.setting;
 
 public class SearchActivity extends BaseActivity {
 
@@ -59,6 +60,7 @@ public class SearchActivity extends BaseActivity {
     private OnlineSongAdapter adapter;
     private ArrayList<Song> list;
     private BroadcastReceiver download_completed_broadcast;
+    private Setting setting;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -91,27 +93,21 @@ public class SearchActivity extends BaseActivity {
             }
         });*/
 
-        db.collection(Utils.COLLECTION_METRICS).whereArrayContains("license",setting.getLicense())
-                .orderBy("monthly_play", Query.Direction.DESCENDING).limit(50)
-                .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                list = new ArrayList<>();
-                if (task.isSuccessful()){
-                    if (task.getResult()== null || task.getResult().isEmpty()){
-                        placeholder();
-                    }else {
-                        for (QueryDocumentSnapshot snapshot : task.getResult()) {
-                            list.add(snapshot.toObject(Song.class));
+        setting = new Setting(1,1,0,2,"free");
+        db.collection(Utils.COLLECTION_USERS).document(user.getUid())
+                .collection(Utils.COLLECTION_SETTINGS).document(user.getUid()).get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if (documentSnapshot.exists()){
+                            setting = documentSnapshot.toObject(Setting.class);
                         }
-
-                        adapter = new OnlineSongAdapter(list,SearchActivity.this,true);
-                        recyclerView.setLayoutManager(new LinearLayoutManager(SearchActivity.this));
-                        recyclerView.setAdapter(adapter);
+                        main_query(setting.getLicense());
                     }
-                }else {
-                    placeholder();
-                }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                main_query(setting.getLicense());
             }
         });
 
@@ -141,8 +137,40 @@ public class SearchActivity extends BaseActivity {
 
     }
 
-    public void placeholder(){
-        db.collection(Utils.COLLECTION_SONGS).limit(150).orderBy("year", Query.Direction.DESCENDING)
+    public void main_query(String license){
+        db.collection(Utils.COLLECTION_METRICS).whereArrayContains("license",license)
+                .orderBy("monthly_play", Query.Direction.DESCENDING).limit(50)
+                .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                list = new ArrayList<>();
+                if (task.isSuccessful()){
+                    if (task.getResult()== null || task.getResult().isEmpty()){
+                        placeholder(license);
+                    }else {
+//                        for (QueryDocumentSnapshot snapshot : task.getResult()) {
+//                            list.add(snapshot.toObject(Song.class));
+//                        }
+//
+//                        adapter = new OnlineSongAdapter(list,SearchActivity.this,true,setting);
+//                        recyclerView.setLayoutManager(new LinearLayoutManager(SearchActivity.this));
+//                        recyclerView.setAdapter(adapter);
+                        placeholder(license);
+                    }
+                }else {
+                    placeholder(license);
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e("ABC",e.getMessage());
+            }
+        });
+    }
+
+    public void placeholder(String license){
+        db.collection(Utils.COLLECTION_SONGS).whereArrayContains("license",license).orderBy("year", Query.Direction.DESCENDING).limit(150)
                 .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -153,9 +181,14 @@ public class SearchActivity extends BaseActivity {
                     list.add(snapshot.toObject(Song.class));
                 }
 
-                adapter = new OnlineSongAdapter(list,SearchActivity.this,true);
+                adapter = new OnlineSongAdapter(list,SearchActivity.this,true,setting);
                 recyclerView.setLayoutManager(new LinearLayoutManager(SearchActivity.this));
                 recyclerView.setAdapter(adapter);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e("ABC",e.getMessage());
             }
         });
     }

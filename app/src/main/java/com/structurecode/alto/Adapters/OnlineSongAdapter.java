@@ -32,6 +32,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.structurecode.alto.Download.SongDownloadManager;
 import com.structurecode.alto.Helpers.Utils;
+import com.structurecode.alto.Models.Setting;
 import com.structurecode.alto.Models.Song;
 import com.structurecode.alto.R;
 import com.structurecode.alto.Services.PlayerService;
@@ -64,11 +65,13 @@ public class OnlineSongAdapter extends RecyclerView.Adapter<OnlineSongAdapter.So
     Context context;
     boolean is_parent;
     boolean is_downloaded;
+    Setting setting;
 
-    public OnlineSongAdapter(List<Song> list, Context context, boolean is_parent) {
+    public OnlineSongAdapter(List<Song> list, Context context, boolean is_parent,Setting setting) {
         this.list = list;
         this.context = context;
         this.is_parent=is_parent;
+        this.setting = setting;
     }
 
     @Override
@@ -231,7 +234,7 @@ public class OnlineSongAdapter extends RecyclerView.Adapter<OnlineSongAdapter.So
                                                                 intent.setAction(Utils.ADDED_SONG_TO_LIBRARY);
                                                                 context.sendBroadcast(intent);
 
-                                                                if (PlayerService.setting.getIs_library_downloaded()== 1){
+                                                                if (setting.getIs_library_downloaded()== 1){
                                                                     if (song.getUrl()!=null && !song.getUrl().isEmpty()) {
                                                                         Intent intent2 = new Intent();
                                                                         intent2.setAction(DOWNLOAD);
@@ -294,7 +297,7 @@ public class OnlineSongAdapter extends RecyclerView.Adapter<OnlineSongAdapter.So
                                                                     intent.setAction(Utils.ADDED_TO_PLAYLIST);
                                                                     context.sendBroadcast(intent);
 
-                                                                    if (PlayerService.setting.getIs_playlist_downloaded()== 1){
+                                                                    if (setting.getIs_playlist_downloaded()== 1){
                                                                         if (song.getUrl()!=null && !song.getUrl().isEmpty()) {
                                                                             Intent intent2 = new Intent();
                                                                             intent2.setAction(DOWNLOAD);
