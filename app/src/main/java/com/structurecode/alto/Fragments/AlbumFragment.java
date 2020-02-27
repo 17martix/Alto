@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -21,6 +23,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.structurecode.alto.Adapters.AlbumAdapter;
 import com.structurecode.alto.Adapters.ArtistAdapter;
+import com.structurecode.alto.Adapters.RecyclerViewEmptySupport;
+import com.structurecode.alto.ExploreActivity;
 import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Models.Setting;
 import com.structurecode.alto.Models.Song;
@@ -36,7 +40,9 @@ import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_COMPLETED;
 
 public class AlbumFragment extends Fragment {
     private AlbumAdapter adapter;
-    private RecyclerView recyclerView;
+    private RecyclerViewEmptySupport recyclerView;
+    private Button empty_button;
+    private LinearLayout empty_view;
     private BroadcastReceiver added_album_song_broadcast;
     private BroadcastReceiver remove_album_song_broadcast;
     private BroadcastReceiver download_completed_broadcast;
@@ -56,8 +62,11 @@ public class AlbumFragment extends Fragment {
                              Bundle savedInstanceState) {
         final View view=inflater.inflate(R.layout.fragment_library_albums, container, false);
 
-        recyclerView = (RecyclerView) view.findViewById(R.id.AlbumList);
+        recyclerView = view.findViewById(R.id.AlbumList);
+        empty_view = view.findViewById(R.id.empty_view);
+        empty_button = view.findViewById(R.id.empty_button);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        recyclerView.setEmptyView(empty_view);
 
         setting = new Setting(1,1,0,2,"free");
         db.collection(Utils.COLLECTION_USERS).document(user.getUid())
@@ -78,6 +87,15 @@ public class AlbumFragment extends Fragment {
         });
 
         initialize_broadcasts();
+
+        empty_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent =new Intent(getContext(), ExploreActivity.class);
+                getActivity().startActivity(intent);
+            }
+        });
+
         // Inflate the layout for this fragment
         return view;
     }

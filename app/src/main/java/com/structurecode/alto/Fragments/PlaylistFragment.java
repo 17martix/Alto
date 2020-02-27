@@ -46,9 +46,8 @@ public class PlaylistFragment extends Fragment {
     private BroadcastReceiver remove_to_playlist_broadcast;
     private BroadcastReceiver download_completed_broadcast;
     private Button empty_button;
-    private Setting setting;
-
     private LinearLayout empty_view;
+    private Setting setting;
 
     public PlaylistFragment() {
         // Required empty public constructor

@@ -335,7 +335,6 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                                 if (users.containsKey(user.getUid())) {
                                     long c = users.get(user.getUid());
                                     long new_count = c + 1;
-                                    users.put(user.getUid(), new_count);
 
                                     if (new_count > 5) {
                                         ArrayList<String> user_list = new ArrayList<>();
@@ -394,6 +393,7 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                                             });
                                         }
                                     }
+                                    users.put(user.getUid(), new_count);
 
                                 } else {
                                     long c = 1;

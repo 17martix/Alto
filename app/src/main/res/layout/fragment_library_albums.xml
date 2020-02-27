@@ -3,11 +3,42 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="@color/primaryBackgroundColor">
 
-    <androidx.recyclerview.widget.RecyclerView
+    <com.structurecode.alto.Adapters.RecyclerViewEmptySupport
         android:layout_height="match_parent"
         android:layout_width="match_parent"
+        android:visibility="gone"
         android:id="@+id/AlbumList">
 
-    </androidx.recyclerview.widget.RecyclerView>
+    </com.structurecode.alto.Adapters.RecyclerViewEmptySupport>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="visible"
+        android:id="@+id/empty_view"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/library_empty"
+            android:padding="@dimen/activity_horizontal_margin"
+            android:textSize="@dimen/smallx_sp"
+            android:gravity="center"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/explore_empty"
+            android:background="@color/primaryColor"
+            android:id="@+id/empty_button"
+            android:textSize="@dimen/smallx_sp"
+            android:padding="@dimen/activity_horizontal_margin"
+            android:backgroundTint="@color/accent_color"
+            />
+
+    </LinearLayout>
 
 </RelativeLayout>

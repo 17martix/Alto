@@ -203,7 +203,20 @@ public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, Playlist
                                 alertDialog.show();
                                 break;
                             case R.id.deletePlaylist:
-                                db.collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots().getSnapshot(clickedPosition).getId())
+                                db.collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots().getSnapshot(clickedPosition).getId()).collection(COLLECTION_SONGS)
+                                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                    @Override
+                                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                        for (DocumentSnapshot snapshot:queryDocumentSnapshots) {
+                                            db.collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots().getSnapshot(clickedPosition).getId()).collection(COLLECTION_SONGS)
+                                                    .document(snapshot.getId()).delete();
+                                        }
+
+                                        db.collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots().getSnapshot(clickedPosition).getId()).delete();
+                                    }
+                                });
+
+                                /*db.collection(Utils.COLLECTION_PLAYLISTS).document(getSnapshots().getSnapshot(clickedPosition).getId())
                                         .delete()
                                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
@@ -216,7 +229,7 @@ public class PlaylistAdapter extends FirestoreRecyclerAdapter<Playlist, Playlist
                                             public void onFailure(@NonNull Exception e) {
                                                 Log.w("ABC", "Error writing document", e);
                                             }
-                                        });
+                                        });*/
                                 break;
                         }
 

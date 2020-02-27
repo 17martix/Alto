@@ -7,7 +7,7 @@
     <com.structurecode.alto.Adapters.RecyclerViewEmptySupport
         android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:visibility="visible"
+        android:visibility="gone"
         android:id="@+id/PlaylistList">
 
     </com.structurecode.alto.Adapters.RecyclerViewEmptySupport>
@@ -17,7 +17,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center"
-        android:visibility="gone"
+        android:visibility="visible"
         android:id="@+id/empty_view"
         >
 

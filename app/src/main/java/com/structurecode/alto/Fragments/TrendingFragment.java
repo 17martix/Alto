@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -22,6 +24,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.structurecode.alto.Adapters.RecyclerViewEmptySupport;
 import com.structurecode.alto.Adapters.SongAdapter;
 import com.structurecode.alto.Helpers.Utils;
 import com.structurecode.alto.Models.Setting;
@@ -35,7 +38,8 @@ import static com.structurecode.alto.Services.PlayerService.DOWNLOAD_COMPLETED;
 public class TrendingFragment extends Fragment {
 
     private SongAdapter adapter;
-    private RecyclerView recyclerView;
+    private RecyclerViewEmptySupport recyclerView;
+    private LinearLayout empty_view;
 
     private BroadcastReceiver download_completed_broadcast;
     private Setting setting;
@@ -54,8 +58,10 @@ public class TrendingFragment extends Fragment {
                              Bundle savedInstanceState) {
         final View view=inflater.inflate(R.layout.fragment_trending, container, false);
 
-        recyclerView = (RecyclerView) view.findViewById(R.id.trending_list);
+        recyclerView = view.findViewById(R.id.trending_list);
+        empty_view = view.findViewById(R.id.empty_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        recyclerView.setEmptyView(empty_view);
 
         setting = new Setting(1,1,0,2,"free");
         db.collection(Utils.COLLECTION_USERS).document(user.getUid())

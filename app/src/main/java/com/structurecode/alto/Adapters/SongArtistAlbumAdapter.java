@@ -307,6 +307,36 @@ public class SongArtistAlbumAdapter extends RecyclerView.Adapter<SongArtistAlbum
                                                                             context.sendBroadcast(intent2);
                                                                         }
                                                                     }
+
+                                                                    db.collection(COLLECTION_PLAYLISTS).document(ids.get(position)).collection(COLLECTION_SONGS).get()
+                                                                            .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                                                                @Override
+                                                                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                                                                    int size = queryDocumentSnapshots.size();
+                                                                                    String[] genres = new String[size];
+                                                                                    String[] moods = new String[size];
+
+                                                                                    for (int i=0; i<size; i++){
+                                                                                        String genre = queryDocumentSnapshots.getDocuments().get(i).getString("genre");
+                                                                                        String mood = queryDocumentSnapshots.getDocuments().get(i).getString("mood");
+                                                                                        if (genre!=null && !genre.isEmpty()){
+                                                                                            genres[i] = genre;
+                                                                                        }
+                                                                                        if (mood!=null && !mood.isEmpty()){
+                                                                                            moods[i] = mood;
+                                                                                        }
+                                                                                    }
+
+                                                                                    String playlist_genre = Utils.mostFrequent(genres,genres.length);
+                                                                                    String playlist_mood = Utils.mostFrequent(moods,moods.length);
+                                                                                    Map<String,Object> map = new HashMap<>();
+                                                                                    map.put("mood", playlist_mood);
+                                                                                    map.put("genre", playlist_genre);
+
+                                                                                    db.collection(COLLECTION_PLAYLISTS).document(ids.get(position)).update(map);
+                                                                                }
+                                                                            });
+
                                                                     //dialog.dismiss();
                                                                 }
                                                             })

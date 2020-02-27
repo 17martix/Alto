@@ -104,6 +104,10 @@
     <string name="artist_album_count">Album</string>
     <string name="artist_album_counts">Albums</string>
     <string name="library_empty">Library Empty</string>
+    <string name="trending_empty">Nothing Trending For the Moment</string>
+    <string name="recom_empty">Alto Still Learning Your Tastes</string>
+    <string name="recom_empty2">Keep Listening...</string>
+    <string name="explore_empty">Explore New Music</string>
     <string name="song_count">Song</string>
     <string name="song_counts">Songs</string>
 

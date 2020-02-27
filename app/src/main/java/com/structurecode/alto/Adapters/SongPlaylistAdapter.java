@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.structurecode.alto.Download.SongDownloadManager;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.structurecode.alto.Helpers.Utils.COLLECTION_PLAYLISTS;
 import static com.structurecode.alto.Helpers.Utils.COLLECTION_SONGS;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.mAuth;
@@ -206,6 +208,35 @@ public class SongPlaylistAdapter extends RecyclerView.Adapter<SongPlaylistAdapte
                                                     intent2.putExtra(AUDIO_EXTRA, song);
                                                     context.sendBroadcast(intent2);
                                                 }
+
+                                                db.collection(COLLECTION_PLAYLISTS).document(song.getPlaylist_id()).collection(COLLECTION_SONGS).get()
+                                                        .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                                            @Override
+                                                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                                                int size = queryDocumentSnapshots.size();
+                                                                String[] genres = new String[size];
+                                                                String[] moods = new String[size];
+
+                                                                for (int i=0; i<size; i++){
+                                                                    String genre = queryDocumentSnapshots.getDocuments().get(i).getString("genre");
+                                                                    String mood = queryDocumentSnapshots.getDocuments().get(i).getString("mood");
+                                                                    if (genre!=null && !genre.isEmpty()){
+                                                                        genres[i] = genre;
+                                                                    }
+                                                                    if (mood!=null && !mood.isEmpty()){
+                                                                        moods[i] = mood;
+                                                                    }
+                                                                }
+
+                                                                String playlist_genre = Utils.mostFrequent(genres,genres.length);
+                                                                String playlist_mood = Utils.mostFrequent(moods,moods.length);
+                                                                Map<String,Object> map = new HashMap<>();
+                                                                map.put("mood", playlist_mood);
+                                                                map.put("genre", playlist_genre);
+
+                                                                db.collection(COLLECTION_PLAYLISTS).document(song.getPlaylist_id()).update(map);
+                                                            }
+                                                        });
                                                 Log.d("ABC", "DocumentSnapshot successfully written!");
                                             }
                                         })

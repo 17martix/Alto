@@ -30,6 +30,7 @@ import java.security.MessageDigest;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -105,6 +106,41 @@ public class Utils {
 
         context.registerReceiver(broadcastReceiver,intentFilter);
     }*/
+
+    public static String mostFrequent(String arr[], int n) {
+        // Sort the array
+        Arrays.sort(arr);
+
+        // find the max frequency using linear
+        // traversal
+        int max_count = 1;
+        int curr_count = 1;
+        String res = arr[0];
+
+        for (int i = 1; i < n; i++)
+        {
+            if (arr[i] == arr[i - 1])
+                curr_count++;
+            else
+            {
+                if (curr_count > max_count)
+                {
+                    max_count = curr_count;
+                    res = arr[i - 1];
+                }
+                curr_count = 1;
+            }
+        }
+
+        // If last element is most frequent
+        if (curr_count > max_count)
+        {
+            max_count = curr_count;
+            res = arr[n - 1];
+        }
+
+        return res;
+    }
 
     public static void setMargins (View v, int l, int t, int r, int b) {
         if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
