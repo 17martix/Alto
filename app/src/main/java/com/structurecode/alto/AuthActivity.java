@@ -357,4 +357,9 @@ public class AuthActivity extends AppCompatActivity implements View.OnClickListe
         super.onStop();
         hideProgressBar();
     }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+    }
 }

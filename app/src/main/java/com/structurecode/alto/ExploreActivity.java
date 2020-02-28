@@ -87,9 +87,4 @@ public class ExploreActivity extends BaseActivity  {
     Context getContext() {
         return ExploreActivity.this;
     }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
 }

@@ -52,6 +52,7 @@ public class Utils {
     public static final String COLLECTION_PLAYLISTS ="playlists";
     public static final String COLLECTION_SONGS="songs";
     public static final String COLLECTION_RECOMMENDED="recommended";
+    public static final String COLLECTION_DOWNLOADED="downloaded";
     public static final String COLLECTION_TRENDING="trending";
 
     public static final String DEVICE_CHECK="com.structurecode.alto.device.check";

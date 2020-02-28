@@ -13,12 +13,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.structurecode.alto.Helpers.StorageHandler;
 
 import java.util.ArrayList;
 
 import static com.structurecode.alto.Helpers.Utils.mAuth;
+import static com.structurecode.alto.Helpers.Utils.user;
 
 public class SplashScreenActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST = 1;
@@ -52,6 +51,7 @@ public class SplashScreenActivity extends AppCompatActivity {
     }
 
     private void login(){
+        Log.e("ABC", "Nope");
         new Handler().postDelayed(() -> {
             Intent i = new Intent(SplashScreenActivity.this, AuthActivity.class);
             startActivity(i);
@@ -97,9 +97,10 @@ public class SplashScreenActivity extends AppCompatActivity {
 
     private void check_login(){
         mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null){
-            if (currentUser.isEmailVerified()){
+        user = mAuth.getCurrentUser();
+        if (user != null){
+            Log.e("ABC", user.getDisplayName());
+            if (user.isEmailVerified()){
                 new Handler().postDelayed(() -> {
                     Intent i = new Intent(SplashScreenActivity.this, LibraryActivity.class);
                     startActivity(i);

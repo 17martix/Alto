@@ -2,6 +2,7 @@ package com.structurecode.alto.Services;
 
 import android.app.Notification;
 import android.content.Intent;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -65,9 +66,10 @@ public class SongDownloadService extends DownloadService {
             intent1.setAction(DOWNLOAD_COMPLETED);
             sendBroadcast(intent1);
         } else if (download.state == Download.STATE_FAILED) {
-            Intent intent1 = new Intent();
+            /*Intent intent1 = new Intent();
             intent1.setAction(DOWNLOAD_COMPLETED);
-            sendBroadcast(intent1);
+            sendBroadcast(intent1);*/
+            Log.e("Downloading", "failed");
         } else {
             Intent intent1 = new Intent();
             intent1.setAction(DOWNLOAD_COMPLETED);

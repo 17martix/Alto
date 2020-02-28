@@ -184,11 +184,6 @@ public class LibraryActivity extends BaseActivity  {
         return LibraryActivity.this;
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
-
     public void display_new_playlist_dialog(@StringRes int title, @StringRes int positiveText, final String playlistTitle,
                                              boolean is_private_retrieved, final int playlistId){
 

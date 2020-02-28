@@ -230,9 +230,4 @@ public class SearchActivity extends BaseActivity {
     Context getContext() {
         return SearchActivity.this;
     }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
 }

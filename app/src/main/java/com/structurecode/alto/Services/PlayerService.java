@@ -80,6 +80,8 @@ import java.util.TimerTask;
 
 import wseemann.media.FFmpegMediaMetadataRetriever;
 
+import static com.structurecode.alto.Helpers.Utils.COLLECTION_DOWNLOADED;
+import static com.structurecode.alto.Helpers.Utils.COLLECTION_USERS;
 import static com.structurecode.alto.Helpers.Utils.db;
 import static com.structurecode.alto.Helpers.Utils.get_date_daily;
 import static com.structurecode.alto.Helpers.Utils.mAuth;
@@ -687,6 +689,13 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
             @Override
             public void onReceive(Context context, Intent intent) {
                 Song song=(Song)intent.getParcelableExtra(AUDIO_EXTRA);
+                if (downloadTracker.isDownloaded(Uri.parse(song.getUrl()))){
+                    db.collection(COLLECTION_USERS).document(user.getUid()).collection(COLLECTION_DOWNLOADED)
+                            .document(song.getId()).delete();
+                }else {
+                    db.collection(COLLECTION_USERS).document(user.getUid()).collection(COLLECTION_DOWNLOADED)
+                            .document(song.getId()).set(song);
+                }
                 downloadTracker.toggleDownload(song.getTitle(),Uri.parse(song.getUrl()));
 
             }
@@ -699,6 +708,8 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
             public void onReceive(Context context, Intent intent) {
                 Song song=(Song)intent.getParcelableExtra(AUDIO_EXTRA);
                 downloadTracker.download_song(song.getTitle(),Uri.parse(song.getUrl()));
+                db.collection(COLLECTION_USERS).document(user.getUid()).collection(COLLECTION_DOWNLOADED)
+                        .document(song.getId()).set(song);
 
             }
         };
@@ -710,6 +721,8 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
             public void onReceive(Context context, Intent intent) {
                 Song song=(Song)intent.getParcelableExtra(AUDIO_EXTRA);
                 downloadTracker.remove_song(Uri.parse(song.getUrl()));
+                db.collection(COLLECTION_USERS).document(user.getUid()).collection(COLLECTION_DOWNLOADED)
+                        .document(song.getId()).delete();
 
             }
         };
