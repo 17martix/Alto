@@ -22,6 +22,7 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.offline.DownloadService;
 import com.google.android.exoplayer2.ui.PlayerControlView;
+import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -41,6 +42,7 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
     private BroadcastReceiver checkBroadcast;
 
     private PlayerControlView playerControlView;
+    private PlayerView playerView;
     public PlayerService player;
     private boolean serviceBound=false;
     private Intent serviceIntent=null;
@@ -65,8 +67,10 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         mini_player_music = findViewById(R.id.mini_player_music);
         coordinatorLayout = findViewById(R.id.coord_music);
         playerControlView=findViewById(R.id.audio_view);
+        playerView = findViewById(R.id.artwork);
         song_info= findViewById(R.id.SongInfo);
 
+        playerView.hideController();
         startService();
 
         try {
@@ -178,6 +182,7 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
             serviceBound = true;
 
             playerControlView.setPlayer(player.player);
+            playerView.setPlayer(player.player);
             update_player();
             player.player.addListener(new Player.EventListener() {
                 @Override

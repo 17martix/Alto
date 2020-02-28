@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
@@ -33,12 +34,16 @@ import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator;
+import com.google.android.exoplayer2.metadata.Metadata;
+import com.google.android.exoplayer2.metadata.flac.PictureFrame;
+import com.google.android.exoplayer2.metadata.id3.ApicFrame;
 import com.google.android.exoplayer2.offline.DownloadHelper;
 import com.google.android.exoplayer2.offline.DownloadRequest;
 import com.google.android.exoplayer2.offline.DownloadService;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
@@ -72,7 +77,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.stream.Collectors;
 
 import wseemann.media.FFmpegMediaMetadataRetriever;
 
@@ -130,6 +134,11 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
     private BroadcastReceiver remove_receiver;
     private Song playing_song;
 
+    private Bitmap artwork = null;
+    TrackSelector trackSelector;
+    private static final int PICTURE_TYPE_FRONT_COVER = 3;
+    private static final int PICTURE_TYPE_NOT_SET = -1;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -149,7 +158,8 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
         downloadTracker.addListener(this);
         concatenatingMediaSource=new ConcatenatingMediaSource();
 
-        TrackSelector trackSelector=new DefaultTrackSelector(context);
+        //TrackSelector trackSelector=new DefaultTrackSelector(context);
+        trackSelector=new DefaultTrackSelector(context);
         RenderersFactory renderersFactory = new DefaultRenderersFactory(context)
                 .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF);
 
@@ -590,8 +600,9 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
                     @Nullable
                     @Override
                     public Bitmap getCurrentLargeIcon(Player player, PlayerNotificationManager.BitmapCallback callback) {
-                        return getAlbumImage(playlist.get(player.getCurrentWindowIndex()));
+                        //return getAlbumImage(playlist.get(player.getCurrentWindowIndex()));
                         //return null;
+                        return artwork;
                     }
                 }, new PlayerNotificationManager.NotificationListener() {
                     @Override
@@ -635,8 +646,6 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
             }
         });
         mediaSessionConnector.setPlayer(player);
-
-
     }
 
     /*public void add_record(Song song) {
@@ -759,6 +768,15 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
             @Override
             public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+                for (int i = 0; i < trackGroups.length; i++) {
+                    TrackGroup trackGroup = trackGroups.get(i);
+                    for (int j = 0; j < trackGroup.length; j++) {
+                        Metadata trackMetadata = trackGroup.getFormat(j).metadata;
+                        if (trackMetadata != null) {
+                            artwork = setArtworkFromMetadata(trackMetadata);
+                        }
+                    }
+                }
             }
 
             @Override
@@ -843,6 +861,34 @@ public class PlayerService extends Service implements SongDownloadTracker.Listen
 
             }
         });
+    }
+
+    private Bitmap setArtworkFromMetadata(Metadata metadata) {
+        Bitmap bitmap = null;
+        int currentPictureType = PICTURE_TYPE_NOT_SET;
+        for (int i = 0; i < metadata.length(); i++) {
+            Metadata.Entry metadataEntry = metadata.get(i);
+            int pictureType;
+            byte[] bitmapData;
+            if (metadataEntry instanceof ApicFrame) {
+                bitmapData = ((ApicFrame) metadataEntry).pictureData;
+                pictureType = ((ApicFrame) metadataEntry).pictureType;
+            } else if (metadataEntry instanceof PictureFrame) {
+                bitmapData = ((PictureFrame) metadataEntry).pictureData;
+                pictureType = ((PictureFrame) metadataEntry).pictureType;
+            } else {
+                continue;
+            }
+            // Prefer the first front cover picture. If there aren't any, prefer the first picture.
+            if (currentPictureType == PICTURE_TYPE_NOT_SET || pictureType == PICTURE_TYPE_FRONT_COVER) {
+                bitmap = BitmapFactory.decodeByteArray(bitmapData, 0, bitmapData.length);
+                currentPictureType = pictureType;
+                if (currentPictureType == PICTURE_TYPE_FRONT_COVER) {
+                    break;
+                }
+            }
+        }
+        return bitmap;
     }
 
     public void resume() {
